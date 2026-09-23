@@ -7835,7 +7835,6 @@
         "RemoteManagers": {
           "description": "List of ID's and addresses of other managers in the swarm.\n",
           "type": "array",
-          "default": null,
           "x-nullable": true,
           "items": {
             "$ref": "#/definitions/PeerNode"
@@ -8416,8 +8415,7 @@
           "required": [
             "Platform",
             "Containers",
-            "Size",
-            "UnpackedSize"
+            "Size"
           ],
           "properties": {
             "Platform": {
@@ -9191,7 +9189,7 @@
           "application/octet-stream"
         ],
         "produces": [
-          "text/plain"
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -9293,6 +9291,9 @@
             "type": "string"
           }
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Container"
         ]
@@ -9348,6 +9349,9 @@
             "type": "integer"
           }
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Container"
         ]
@@ -9399,6 +9403,9 @@
             "description": "Number of seconds to wait before killing the container",
             "type": "integer"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Container"
@@ -9458,6 +9465,9 @@
             "type": "string",
             "default": "SIGKILL"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Container"
@@ -9599,6 +9609,9 @@
             "type": "string"
           }
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Container"
         ]
@@ -9640,6 +9653,9 @@
             "type": "string"
           }
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Container"
         ]
@@ -9680,6 +9696,9 @@
             "description": "ID or name of the container",
             "type": "string"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Container"
@@ -10008,6 +10027,9 @@
             "type": "boolean",
             "default": false
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Container"
@@ -10722,8 +10744,9 @@
           {
             "name": "changes",
             "in": "query",
-            "description": "Apply `Dockerfile` instructions to the image that is created,\nfor example: `changes=ENV DEBUG=true`.\nNote that `ENV DEBUG=true` should be URI component encoded.\n\nSupported `Dockerfile` instructions:\n`CMD`|`ENTRYPOINT`|`ENV`|`EXPOSE`|`ONBUILD`|`USER`|`VOLUME`|`WORKDIR`\n",
+            "description": "Apply `Dockerfile` instructions to the image that is created,\nfor example: `changes=ENV DEBUG=true`.\nNote that `ENV DEBUG=true` should be URI component encoded.\nRepeat the parameter to apply multiple instructions.\n\nSupported `Dockerfile` instructions:\n`CMD`|`ENTRYPOINT`|`ENV`|`EXPOSE`|`ONBUILD`|`USER`|`VOLUME`|`WORKDIR`\n",
             "type": "array",
+            "collectionFormat": "multi",
             "items": {
               "type": "string"
             }
@@ -11167,8 +11190,9 @@
           {
             "name": "platforms",
             "in": "query",
-            "description": "Select platform-specific content to delete.\nMultiple values are accepted.\nEach platform is a OCI platform encoded as a JSON string.\n",
+            "description": "Select platform-specific content to delete.\nRepeat the parameter to select multiple platforms.\nEach platform is a OCI platform encoded as a JSON string.\n",
             "type": "array",
+            "collectionFormat": "multi",
             "items": {
               "type": "string"
             }
@@ -11846,8 +11870,9 @@
           {
             "name": "names",
             "in": "query",
-            "description": "Image names to filter by",
+            "description": "Image names to filter by. Repeat the parameter for multiple images.",
             "type": "array",
+            "collectionFormat": "multi",
             "items": {
               "type": "string"
             }
@@ -12535,6 +12560,9 @@
             "default": false
           }
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Volume"
         ]
@@ -12782,6 +12810,9 @@
             "required": true,
             "type": "string"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Network"
@@ -13504,6 +13535,9 @@
             }
           }
         ],
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Plugin"
         ]
@@ -13544,6 +13578,9 @@
               "format": "binary"
             }
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "tags": [
           "Plugin"
@@ -13632,6 +13669,9 @@
             }
           }
         },
+        "produces": [
+          "application/json"
+        ],
         "tags": [
           "Plugin"
         ]
