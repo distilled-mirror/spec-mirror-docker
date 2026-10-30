@@ -8480,8 +8480,8 @@
         "summary": "List containers",
         "description": "Returns a list of containers. For details on the format, see the\n[inspect endpoint](#operation/ContainerInspect).\n\nNote that it uses a different, smaller representation of a container\nthan inspecting a single container. For example, the list of linked\ncontainers is not propagated .\n",
         "operationId": "ContainerList",
-        "produces": [
-          "application/json"
+        "tags": [
+          "Container"
         ],
         "parameters": [
           {
@@ -8511,6 +8511,9 @@
             "type": "string"
           }
         ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -8533,22 +8536,15 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/create": {
       "post": {
         "summary": "Create a container",
         "operationId": "ContainerCreate",
-        "consumes": [
-          "application/json",
-          "application/octet-stream"
-        ],
-        "produces": [
-          "application/json"
+        "tags": [
+          "Container"
         ],
         "parameters": [
           {
@@ -8569,6 +8565,7 @@
             "name": "body",
             "in": "body",
             "description": "Container to create",
+            "required": true,
             "schema": {
               "allOf": [
                 {
@@ -8760,9 +8757,15 @@
                   }
                 }
               }
-            },
-            "required": true
+            }
           }
+        ],
+        "consumes": [
+          "application/json",
+          "application/octet-stream"
+        ],
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "201": {
@@ -8800,10 +8803,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/{id}/json": {
@@ -8811,6 +8811,25 @@
         "summary": "Inspect a container",
         "description": "Return low-level information about a container.",
         "operationId": "ContainerInspect",
+        "tags": [
+          "Container"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID or name of the container",
+            "type": "string"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Return the size of container as fields `SizeRw` and `SizeRootFs`",
+            "type": "boolean",
+            "default": false
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -8838,7 +8857,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/top": {
+      "get": {
+        "summary": "List processes running inside a container",
+        "description": "On Unix systems, this is done by running the `ps` command. This endpoint\nis not supported on Windows.\n",
+        "operationId": "ContainerTop",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -8848,23 +8877,13 @@
             "type": "string"
           },
           {
-            "name": "size",
+            "name": "ps_args",
             "in": "query",
-            "type": "boolean",
-            "default": false,
-            "description": "Return the size of container as fields `SizeRw` and `SizeRootFs`"
+            "description": "The arguments to pass to `ps`. For example, `aux`",
+            "type": "string",
+            "default": "-ef"
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/top": {
-      "get": {
-        "summary": "List processes running inside a container",
-        "description": "On Unix systems, this is done by running the `ps` command. This endpoint\nis not supported on Windows.\n",
-        "operationId": "ContainerTop",
         "responses": {
           "200": {
             "description": "no error",
@@ -8889,63 +8908,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID or name of the container",
-            "type": "string"
-          },
-          {
-            "name": "ps_args",
-            "in": "query",
-            "description": "The arguments to pass to `ps`. For example, `aux`",
-            "type": "string",
-            "default": "-ef"
-          }
-        ],
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/{id}/logs": {
       "get": {
         "summary": "Get container logs",
         "description": "Get `stdout` and `stderr` logs from a container.\n\nNote: This endpoint works only for containers with the `json-file` or\n`journald` logging driver.\n",
-        "produces": [
-          "application/vnd.docker.raw-stream",
-          "application/vnd.docker.multiplexed-stream"
-        ],
         "operationId": "ContainerLogs",
-        "responses": {
-          "200": {
-            "description": "logs returned as a stream in response body.\nFor the stream format, [see the documentation for the attach endpoint](#operation/ContainerAttach).\nNote that unlike the attach endpoint, the logs endpoint does not\nupgrade the connection and does not set Content-Type.\n",
-            "schema": {
-              "type": "string",
-              "format": "binary"
-            }
-          },
-          "404": {
-            "description": "no such container",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            },
-            "examples": {
-              "application/json": {
-                "message": "No such container: c2ada9df5af8"
-              }
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9004,9 +8977,37 @@
             "default": "all"
           }
         ],
-        "tags": [
-          "Container"
-        ]
+        "produces": [
+          "application/vnd.docker.raw-stream",
+          "application/vnd.docker.multiplexed-stream",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "logs returned as a stream in response body.\nFor the stream format, [see the documentation for the attach endpoint](#operation/ContainerAttach).\nNote that unlike the attach endpoint, the logs endpoint does not\nupgrade the connection and does not set Content-Type.\n",
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "404": {
+            "description": "no such container",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "examples": {
+              "application/json": {
+                "message": "No such container: c2ada9df5af8"
+              }
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/containers/{id}/changes": {
@@ -9014,6 +9015,18 @@
         "summary": "Get changes on a container’s filesystem",
         "description": "Returns which files in a container's filesystem have been added, deleted,\nor modified. The `Kind` of modification can be one of:\n\n- `0`: Modified (\"C\")\n- `1`: Added (\"A\")\n- `2`: Deleted (\"D\")\n",
         "operationId": "ContainerChanges",
+        "tags": [
+          "Container"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID or name of the container",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -9060,7 +9073,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/export": {
+      "get": {
+        "summary": "Export a container",
+        "description": "Export the contents of a container as a tarball.",
+        "operationId": "ContainerExport",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9070,18 +9093,9 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/export": {
-      "get": {
-        "summary": "Export a container",
-        "description": "Export the contents of a container as a tarball.",
-        "operationId": "ContainerExport",
         "produces": [
-          "application/octet-stream"
+          "application/octet-stream",
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -9104,19 +9118,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID or name of the container",
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/{id}/stats": {
@@ -9124,6 +9126,32 @@
         "summary": "Get container stats based on resource usage",
         "description": "This endpoint returns a live stream of a container’s resource usage\nstatistics.\n\nThe `precpu_stats` is the CPU statistic of the *previous* read, and is\nused to calculate the CPU usage percentage. It is not an exact copy\nof the `cpu_stats` field.\n\nIf either `precpu_stats.online_cpus` or `cpu_stats.online_cpus` is\nnil then for compatibility with older daemons the length of the\ncorresponding `cpu_usage.percpu_usage` array should be used.\n\nOn a cgroup v2 host, the following fields are not set\n* `blkio_stats`: all fields other than `io_service_bytes_recursive`\n* `cpu_stats`: `cpu_usage.percpu_usage`\n* `memory_stats`: `max_usage` and `failcnt`\nAlso, `memory_stats.stats` fields are incompatible with cgroup v1.\n\nTo calculate the values shown by the `stats` command of the docker cli tool\nthe following formulas can be used:\n* used_memory = `memory_stats.usage - memory_stats.stats.cache` (cgroups v1)\n* used_memory = `memory_stats.usage - memory_stats.stats.inactive_file` (cgroups v2)\n* available_memory = `memory_stats.limit`\n* Memory usage % = `(used_memory / available_memory) * 100.0`\n* cpu_delta = `cpu_stats.cpu_usage.total_usage - precpu_stats.cpu_usage.total_usage`\n* system_cpu_delta = `cpu_stats.system_cpu_usage - precpu_stats.system_cpu_usage`\n* number_cpus = `length(cpu_stats.cpu_usage.percpu_usage)` or `cpu_stats.online_cpus`\n* CPU usage % = `(cpu_delta / system_cpu_delta) * number_cpus * 100.0`\n",
         "operationId": "ContainerStats",
+        "tags": [
+          "Container"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID or name of the container",
+            "type": "string"
+          },
+          {
+            "name": "stream",
+            "in": "query",
+            "description": "Stream the output. If false, the stats will be output once and then\nit will disconnect.\n",
+            "type": "boolean",
+            "default": true
+          },
+          {
+            "name": "one-shot",
+            "in": "query",
+            "description": "Only get a single stat instead of waiting for 2 cycles. Must be used\nwith `stream=false`.\n",
+            "type": "boolean",
+            "default": false
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -9151,7 +9179,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/resize": {
+      "post": {
+        "summary": "Resize a container TTY",
+        "description": "Resize the TTY for a container.",
+        "operationId": "ContainerResize",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9161,30 +9199,20 @@
             "type": "string"
           },
           {
-            "name": "stream",
+            "name": "h",
             "in": "query",
-            "description": "Stream the output. If false, the stats will be output once and then\nit will disconnect.\n",
-            "type": "boolean",
-            "default": true
+            "required": true,
+            "description": "Height of the TTY session in characters",
+            "type": "integer"
           },
           {
-            "name": "one-shot",
+            "name": "w",
             "in": "query",
-            "description": "Only get a single stat instead of waiting for 2 cycles. Must be used\nwith `stream=false`.\n",
-            "type": "boolean",
-            "default": false
+            "required": true,
+            "description": "Width of the TTY session in characters",
+            "type": "integer"
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/resize": {
-      "post": {
-        "summary": "Resize a container TTY",
-        "description": "Resize the TTY for a container.",
-        "operationId": "ContainerResize",
         "consumes": [
           "application/octet-stream"
         ],
@@ -9212,7 +9240,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/start": {
+      "post": {
+        "summary": "Start a container",
+        "operationId": "ContainerStart",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9222,29 +9259,15 @@
             "type": "string"
           },
           {
-            "name": "h",
+            "name": "detachKeys",
             "in": "query",
-            "required": true,
-            "description": "Height of the TTY session in characters",
-            "type": "integer"
-          },
-          {
-            "name": "w",
-            "in": "query",
-            "required": true,
-            "description": "Width of the TTY session in characters",
-            "type": "integer"
+            "description": "Override the key sequence for detaching a container. Format is a\nsingle character `[a-Z]` or `ctrl-<value>` where `<value>` is one\nof: `a-z`, `@`, `^`, `[`, `,` or `_`.\n",
+            "type": "string"
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/start": {
-      "post": {
-        "summary": "Start a container",
-        "operationId": "ContainerStart",
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "no error"
@@ -9275,7 +9298,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/stop": {
+      "post": {
+        "summary": "Stop a container",
+        "operationId": "ContainerStop",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9285,24 +9317,21 @@
             "type": "string"
           },
           {
-            "name": "detachKeys",
+            "name": "signal",
             "in": "query",
-            "description": "Override the key sequence for detaching a container. Format is a\nsingle character `[a-Z]` or `ctrl-<value>` where `<value>` is one\nof: `a-z`, `@`, `^`, `[`, `,` or `_`.\n",
+            "description": "Signal to send to the container as an integer or string (e.g. `SIGINT`).\n",
             "type": "string"
+          },
+          {
+            "name": "t",
+            "in": "query",
+            "description": "Number of seconds to wait before killing the container",
+            "type": "integer"
           }
         ],
         "produces": [
           "application/json"
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/stop": {
-      "post": {
-        "summary": "Stop a container",
-        "operationId": "ContainerStop",
         "responses": {
           "204": {
             "description": "no error"
@@ -9327,7 +9356,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/restart": {
+      "post": {
+        "summary": "Restart a container",
+        "operationId": "ContainerRestart",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9352,15 +9390,6 @@
         "produces": [
           "application/json"
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/restart": {
-      "post": {
-        "summary": "Restart a container",
-        "operationId": "ContainerRestart",
         "responses": {
           "204": {
             "description": "no error"
@@ -9382,7 +9411,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/kill": {
+      "post": {
+        "summary": "Kill a container",
+        "description": "Send a POSIX signal to a container, defaulting to killing to the\ncontainer.\n",
+        "operationId": "ContainerKill",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9395,28 +9434,13 @@
             "name": "signal",
             "in": "query",
             "description": "Signal to send to the container as an integer or string (e.g. `SIGINT`).\n",
-            "type": "string"
-          },
-          {
-            "name": "t",
-            "in": "query",
-            "description": "Number of seconds to wait before killing the container",
-            "type": "integer"
+            "type": "string",
+            "default": "SIGKILL"
           }
         ],
         "produces": [
           "application/json"
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/kill": {
-      "post": {
-        "summary": "Kill a container",
-        "description": "Send a POSIX signal to a container, defaulting to killing to the\ncontainer.\n",
-        "operationId": "ContainerKill",
         "responses": {
           "204": {
             "description": "no error"
@@ -9449,29 +9473,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID or name of the container",
-            "type": "string"
-          },
-          {
-            "name": "signal",
-            "in": "query",
-            "description": "Signal to send to the container as an integer or string (e.g. `SIGINT`).\n",
-            "type": "string",
-            "default": "SIGKILL"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/{id}/update": {
@@ -9479,37 +9481,9 @@
         "summary": "Update a container",
         "description": "Change various configuration options of a container without having to\nrecreate it.\n",
         "operationId": "ContainerUpdate",
-        "consumes": [
-          "application/json"
+        "tags": [
+          "Container"
         ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "The container has been updated.",
-            "schema": {
-              "$ref": "#/definitions/ContainerUpdateResponse"
-            }
-          },
-          "404": {
-            "description": "no such container",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            },
-            "examples": {
-              "application/json": {
-                "message": "No such container: c2ada9df5af8"
-              }
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "id",
@@ -9556,15 +9530,65 @@
             }
           }
         ],
-        "tags": [
-          "Container"
-        ]
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "The container has been updated.",
+            "schema": {
+              "$ref": "#/definitions/ContainerUpdateResponse"
+            }
+          },
+          "404": {
+            "description": "no such container",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "examples": {
+              "application/json": {
+                "message": "No such container: c2ada9df5af8"
+              }
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/containers/{id}/rename": {
       "post": {
         "summary": "Rename a container",
         "operationId": "ContainerRename",
+        "tags": [
+          "Container"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID or name of the container",
+            "type": "string"
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "required": true,
+            "description": "New name for the container",
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "no error"
@@ -9592,29 +9616,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID or name of the container",
-            "type": "string"
-          },
-          {
-            "name": "name",
-            "in": "query",
-            "required": true,
-            "description": "New name for the container",
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/{id}/pause": {
@@ -9622,6 +9624,21 @@
         "summary": "Pause a container",
         "description": "Use the freezer cgroup to suspend all processes in a container.\n\nTraditionally, when suspending a process the `SIGSTOP` signal is used,\nwhich is observable by the process being suspended. With the freezer\ncgroup the process is unaware, and unable to capture, that it is being\nsuspended, and subsequently resumed.\n",
         "operationId": "ContainerPause",
+        "tags": [
+          "Container"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID or name of the container",
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "no error"
@@ -9643,22 +9660,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID or name of the container",
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/{id}/unpause": {
@@ -9666,6 +9668,21 @@
         "summary": "Unpause a container",
         "description": "Resume a container which has been paused.",
         "operationId": "ContainerUnpause",
+        "tags": [
+          "Container"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID or name of the container",
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "no error"
@@ -9687,22 +9704,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID or name of the container",
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/{id}/attach": {
@@ -9710,41 +9712,9 @@
         "summary": "Attach to a container",
         "description": "Attach to a container to read its output or send it input. You can attach\nto the same container multiple times and you can reattach to containers\nthat have been detached.\n\nEither the `stream` or `logs` parameter must be `true` for this endpoint\nto do anything.\n\nSee the [documentation for the `docker attach` command](https://docs.docker.com/engine/reference/commandline/attach/)\nfor more details.\n\n### Hijacking\n\nThis endpoint hijacks the HTTP connection to transport `stdin`, `stdout`,\nand `stderr` on the same socket.\n\nThis is the response from the daemon for an attach request:\n\n```\nHTTP/1.1 200 OK\nContent-Type: application/vnd.docker.raw-stream\n\n[STREAM]\n```\n\nAfter the headers and two new lines, the TCP connection can now be used\nfor raw, bidirectional communication between the client and server.\n\nTo hint potential proxies about connection hijacking, the Docker client\ncan also optionally send connection upgrade headers.\n\nFor example, the client sends this request to upgrade the connection:\n\n```\nPOST /containers/16253994b7c4/attach?stream=1&stdout=1 HTTP/1.1\nUpgrade: tcp\nConnection: Upgrade\n```\n\nThe Docker daemon will respond with a `101 UPGRADED` response, and will\nsimilarly follow with the raw stream:\n\n```\nHTTP/1.1 101 UPGRADED\nContent-Type: application/vnd.docker.raw-stream\nConnection: Upgrade\nUpgrade: tcp\n\n[STREAM]\n```\n\n### Stream format\n\nWhen the TTY setting is disabled in [`POST /containers/create`](#operation/ContainerCreate),\nthe HTTP Content-Type header is set to application/vnd.docker.multiplexed-stream\nand the stream over the hijacked connected is multiplexed to separate out\n`stdout` and `stderr`. The stream consists of a series of frames, each\ncontaining a header and a payload.\n\nThe header contains the information which the stream writes (`stdout` or\n`stderr`). It also contains the size of the associated frame encoded in\nthe last four bytes (`uint32`).\n\nIt is encoded on the first eight bytes like this:\n\n```go\nheader := [8]byte{STREAM_TYPE, 0, 0, 0, SIZE1, SIZE2, SIZE3, SIZE4}\n```\n\n`STREAM_TYPE` can be:\n\n- 0: `stdin` (is written on `stdout`)\n- 1: `stdout`\n- 2: `stderr`\n\n`SIZE1, SIZE2, SIZE3, SIZE4` are the four bytes of the `uint32` size\nencoded as big endian.\n\nFollowing the header is the payload, which is the specified number of\nbytes of `STREAM_TYPE`.\n\nThe simplest way to implement this protocol is the following:\n\n1. Read 8 bytes.\n2. Choose `stdout` or `stderr` depending on the first byte.\n3. Extract the frame size from the last four bytes.\n4. Read the extracted size and output it on the correct output.\n5. Goto 1.\n\n### Stream format when using a TTY\n\nWhen the TTY setting is enabled in [`POST /containers/create`](#operation/ContainerCreate),\nthe stream is not multiplexed. The data exchanged over the hijacked\nconnection is simply the raw data from the process PTY and client's\n`stdin`.\n",
         "operationId": "ContainerAttach",
-        "produces": [
-          "application/vnd.docker.raw-stream",
-          "application/vnd.docker.multiplexed-stream"
+        "tags": [
+          "Container"
         ],
-        "responses": {
-          "101": {
-            "description": "no error, hints proxy about hijacking"
-          },
-          "200": {
-            "description": "no error, no upgrade header found"
-          },
-          "400": {
-            "description": "bad parameter",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "no such container",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            },
-            "examples": {
-              "application/json": {
-                "message": "No such container: c2ada9df5af8"
-              }
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "id",
@@ -9795,15 +9765,11 @@
             "default": false
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/attach/ws": {
-      "get": {
-        "summary": "Attach to a container via a websocket",
-        "operationId": "ContainerAttachWebsocket",
+        "produces": [
+          "application/vnd.docker.raw-stream",
+          "application/vnd.docker.multiplexed-stream",
+          "application/json"
+        ],
         "responses": {
           "101": {
             "description": "no error, hints proxy about hijacking"
@@ -9834,7 +9800,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/attach/ws": {
+      "get": {
+        "summary": "Attach to a container via a websocket",
+        "operationId": "ContainerAttachWebsocket",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9885,9 +9860,37 @@
             "default": false
           }
         ],
-        "tags": [
-          "Container"
-        ]
+        "responses": {
+          "101": {
+            "description": "no error, hints proxy about hijacking"
+          },
+          "200": {
+            "description": "no error, no upgrade header found"
+          },
+          "400": {
+            "description": "bad parameter",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "no such container",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "examples": {
+              "application/json": {
+                "message": "No such container: c2ada9df5af8"
+              }
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/containers/{id}/wait": {
@@ -9895,6 +9898,30 @@
         "summary": "Wait for a container",
         "description": "Block until a container stops, then returns the exit code.",
         "operationId": "ContainerWait",
+        "tags": [
+          "Container"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID or name of the container",
+            "type": "string"
+          },
+          {
+            "name": "condition",
+            "in": "query",
+            "description": "Wait until a container state reaches the given condition.\n\nDefaults to `not-running` if omitted or empty.\n",
+            "type": "string",
+            "enum": [
+              "not-running",
+              "next-exit",
+              "removed"
+            ],
+            "default": "not-running"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -9928,7 +9955,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}": {
+      "delete": {
+        "summary": "Remove a container",
+        "operationId": "ContainerDelete",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -9938,27 +9974,30 @@
             "type": "string"
           },
           {
-            "name": "condition",
+            "name": "v",
             "in": "query",
-            "description": "Wait until a container state reaches the given condition.\n\nDefaults to `not-running` if omitted or empty.\n",
-            "type": "string",
-            "enum": [
-              "not-running",
-              "next-exit",
-              "removed"
-            ],
-            "default": "not-running"
+            "description": "Remove anonymous volumes associated with the container.",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "If the container is running, kill it before removing it.",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "link",
+            "in": "query",
+            "description": "Remove the specified link associated with the container.",
+            "type": "boolean",
+            "default": false
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}": {
-      "delete": {
-        "summary": "Remove a container",
-        "operationId": "ContainerDelete",
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "no error"
@@ -9997,7 +10036,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/containers/{id}/archive": {
+      "head": {
+        "summary": "Get information about files in a container",
+        "description": "A response header `X-Docker-Container-Path-Stat` is returned, containing\na base64 - encoded JSON object with some filesystem header information\nabout the path.\n",
+        "operationId": "ContainerArchiveInfo",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -10007,47 +10056,23 @@
             "type": "string"
           },
           {
-            "name": "v",
+            "name": "path",
             "in": "query",
-            "description": "Remove anonymous volumes associated with the container.",
-            "type": "boolean",
-            "default": false
-          },
-          {
-            "name": "force",
-            "in": "query",
-            "description": "If the container is running, kill it before removing it.",
-            "type": "boolean",
-            "default": false
-          },
-          {
-            "name": "link",
-            "in": "query",
-            "description": "Remove the specified link associated with the container.",
-            "type": "boolean",
-            "default": false
+            "required": true,
+            "description": "Resource in the container’s filesystem to archive.",
+            "type": "string"
           }
         ],
         "produces": [
           "application/json"
         ],
-        "tags": [
-          "Container"
-        ]
-      }
-    },
-    "/containers/{id}/archive": {
-      "head": {
-        "summary": "Get information about files in a container",
-        "description": "A response header `X-Docker-Container-Path-Stat` is returned, containing\na base64 - encoded JSON object with some filesystem header information\nabout the path.\n",
-        "operationId": "ContainerArchiveInfo",
         "responses": {
           "200": {
             "description": "no error",
             "headers": {
               "X-Docker-Container-Path-Stat": {
-                "type": "string",
-                "description": "A base64 - encoded JSON object with some filesystem header\ninformation about the path\n"
+                "description": "A base64 - encoded JSON object with some filesystem header\ninformation about the path\n",
+                "type": "string"
               }
             }
           },
@@ -10074,7 +10099,15 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      },
+      "get": {
+        "summary": "Get an archive of a filesystem resource in a container",
+        "description": "Get a tar archive of a resource in the filesystem of container id.",
+        "operationId": "ContainerArchive",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -10091,16 +10124,9 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      },
-      "get": {
-        "summary": "Get an archive of a filesystem resource in a container",
-        "description": "Get a tar archive of a resource in the filesystem of container id.",
-        "operationId": "ContainerArchive",
         "produces": [
-          "application/x-tar"
+          "application/x-tar",
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -10129,7 +10155,15 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      },
+      "put": {
+        "summary": "Extract an archive of files or folders to a directory in a container",
+        "description": "Upload a tar archive to be extracted to a path in the filesystem of container id.\n`path` parameter is asserted to be a directory. If it exists as a file, 400 error\nwill be returned with message \"not a directory\".\n",
+        "operationId": "PutContainerArchive",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -10142,18 +10176,32 @@
             "name": "path",
             "in": "query",
             "required": true,
-            "description": "Resource in the container’s filesystem to archive.",
+            "description": "Path to a directory in the container to extract the archive’s contents into. ",
             "type": "string"
+          },
+          {
+            "name": "noOverwriteDirNonDir",
+            "in": "query",
+            "description": "If `1`, `true`, or `True` then it will be an error if unpacking the\ngiven content would cause an existing directory to be replaced with\na non-directory and vice versa.\n",
+            "type": "string"
+          },
+          {
+            "name": "copyUIDGID",
+            "in": "query",
+            "description": "If `1`, `true`, then it will copy UID/GID maps to the dest file or\ndir\n",
+            "type": "string"
+          },
+          {
+            "name": "inputStream",
+            "in": "body",
+            "description": "The input stream must be a tar archive compressed with one of the\nfollowing algorithms: `identity` (no compression), `gzip`, `bzip2`,\nor `xz`.\n",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
           }
         ],
-        "tags": [
-          "Container"
-        ]
-      },
-      "put": {
-        "summary": "Extract an archive of files or folders to a directory in a container",
-        "description": "Upload a tar archive to be extracted to a path in the filesystem of container id.\n`path` parameter is asserted to be a directory. If it exists as a file, 400 error\nwill be returned with message \"not a directory\".\n",
-        "operationId": "PutContainerArchive",
         "consumes": [
           "application/x-tar",
           "application/octet-stream"
@@ -10196,57 +10244,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "description": "ID or name of the container",
-            "type": "string"
-          },
-          {
-            "name": "path",
-            "in": "query",
-            "required": true,
-            "description": "Path to a directory in the container to extract the archive’s contents into. ",
-            "type": "string"
-          },
-          {
-            "name": "noOverwriteDirNonDir",
-            "in": "query",
-            "description": "If `1`, `true`, or `True` then it will be an error if unpacking the\ngiven content would cause an existing directory to be replaced with\na non-directory and vice versa.\n",
-            "type": "string"
-          },
-          {
-            "name": "copyUIDGID",
-            "in": "query",
-            "description": "If `1`, `true`, then it will copy UID/GID maps to the dest file or\ndir\n",
-            "type": "string"
-          },
-          {
-            "name": "inputStream",
-            "in": "body",
-            "required": true,
-            "description": "The input stream must be a tar archive compressed with one of the\nfollowing algorithms: `identity` (no compression), `gzip`, `bzip2`,\nor `xz`.\n",
-            "schema": {
-              "type": "string",
-              "format": "binary"
-            }
-          }
-        ],
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/containers/prune": {
       "post": {
         "summary": "Delete stopped containers",
-        "produces": [
-          "application/json"
-        ],
         "operationId": "ContainerPrune",
+        "tags": [
+          "Container"
+        ],
         "parameters": [
           {
             "name": "filters",
@@ -10254,6 +10261,9 @@
             "description": "Filters to process on the prune list, encoded as JSON (a `map[string][]string`).\n\nAvailable filters:\n- `until=<timestamp>` Prune containers created before this timestamp. The `<timestamp>` can be Unix timestamps, date formatted timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the daemon machine’s time.\n- `label` (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) Prune containers with (or without, in case `label!=...` is used) the specified labels.\n",
             "type": "string"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -10283,10 +10293,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Container"
-        ]
+        }
       }
     },
     "/images/json": {
@@ -10294,26 +10301,9 @@
         "summary": "List Images",
         "description": "Returns a list of images on the server. Note that it uses a different, smaller representation of an image than inspecting a single image.",
         "operationId": "ImageList",
-        "produces": [
-          "application/json"
+        "tags": [
+          "Image"
         ],
-        "responses": {
-          "200": {
-            "description": "Summary image data for the images matching the query",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/ImageSummary"
-              }
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "all",
@@ -10357,9 +10347,26 @@
             "default": false
           }
         ],
-        "tags": [
-          "Image"
-        ]
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "Summary image data for the images matching the query",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/ImageSummary"
+              }
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/build": {
@@ -10367,22 +10374,10 @@
         "summary": "Build an image",
         "description": "Build an image from a tar archive with a `Dockerfile` in it.\n\nThe `Dockerfile` specifies how the image is built from the tar archive. It is typically in the archive's root, but can be at a different path or have a different name by specifying the `dockerfile` parameter. [See the `Dockerfile` reference for more information](https://docs.docker.com/engine/reference/builder/).\n\nThe Docker daemon performs a preliminary validation of the `Dockerfile` before starting the build, and returns an error if the syntax is incorrect. After that, each instruction is run one-by-one until the ID of the new image is output.\n\nThe build is canceled if the client drops the connection by quitting or being killed.\n",
         "operationId": "ImageBuild",
-        "consumes": [
-          "application/octet-stream"
-        ],
-        "produces": [
-          "application/json"
+        "tags": [
+          "Image"
         ],
         "parameters": [
-          {
-            "name": "inputStream",
-            "in": "body",
-            "description": "A tar archive compressed with one of the following algorithms: identity (no compression), gzip, bzip2, xz.",
-            "schema": {
-              "type": "string",
-              "format": "binary"
-            }
-          },
           {
             "name": "dockerfile",
             "in": "query",
@@ -10521,15 +10516,6 @@
             "type": "string"
           },
           {
-            "name": "Content-type",
-            "in": "header",
-            "type": "string",
-            "enum": [
-              "application/x-tar"
-            ],
-            "default": "application/x-tar"
-          },
-          {
             "name": "X-Registry-Config",
             "in": "header",
             "description": "This is a base64-encoded JSON object with auth configurations for multiple registries that a build may refer to.\n\nThe key is a registry URL, and the value is an auth configuration object, [as described in the authentication section](#section/Authentication). For example:\n\n```\n{\n  \"docker.example.com\": {\n    \"username\": \"janedoe\",\n    \"password\": \"hunter2\"\n  },\n  \"https://index.docker.io/v1/\": {\n    \"username\": \"mobydock\",\n    \"password\": \"conta1n3rize14\"\n  }\n}\n```\n\nOnly the registry domain name (and port if not the default 443) are required. However, for legacy reasons, the Docker Hub registry must be specified with both a `https://` prefix and a `/v1/` suffix even though Docker will prefer to use the v2 registry API.\n",
@@ -10559,14 +10545,30 @@
           {
             "name": "version",
             "in": "query",
+            "description": "Version of the builder backend to use.\n\n- `1` is the first generation classic (deprecated) builder in the Docker daemon (default)\n- `2` is [BuildKit](https://github.com/moby/buildkit)\n",
             "type": "string",
             "default": "1",
             "enum": [
               "1",
               "2"
-            ],
-            "description": "Version of the builder backend to use.\n\n- `1` is the first generation classic (deprecated) builder in the Docker daemon (default)\n- `2` is [BuildKit](https://github.com/moby/buildkit)\n"
+            ]
+          },
+          {
+            "name": "inputStream",
+            "in": "body",
+            "description": "A tar archive compressed with one of the following algorithms: identity (no compression), gzip, bzip2, xz.",
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
           }
+        ],
+        "consumes": [
+          "application/octet-stream",
+          "application/x-tar"
+        ],
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -10584,19 +10586,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/build/prune": {
       "post": {
         "summary": "Delete builder cache",
-        "produces": [
-          "application/json"
-        ],
         "operationId": "BuildPrune",
+        "tags": [
+          "Image"
+        ],
         "parameters": [
           {
             "name": "reserved-space",
@@ -10622,15 +10621,18 @@
           {
             "name": "all",
             "in": "query",
-            "type": "boolean",
-            "description": "Remove all types of build cache"
+            "description": "Remove all types of build cache",
+            "type": "boolean"
           },
           {
             "name": "filters",
             "in": "query",
-            "type": "string",
-            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the list of build cache objects.\n\nAvailable filters:\n\n- `until=<timestamp>` remove cache older than `<timestamp>`. The `<timestamp>` can be Unix timestamps, date formatted timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the daemon's local time.\n- `id=<id>`\n- `parent=<id>`\n- `type=<string>`\n- `description=<string>`\n- `inuse`\n- `shared`\n- `private`\n"
+            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the list of build cache objects.\n\nAvailable filters:\n\n- `until=<timestamp>` remove cache older than `<timestamp>`. The `<timestamp>` can be Unix timestamps, date formatted timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the daemon's local time.\n- `id=<id>`\n- `parent=<id>`\n- `type=<string>`\n- `description=<string>`\n- `inuse`\n- `shared`\n- `private`\n",
+            "type": "string"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -10660,10 +10662,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/create": {
@@ -10671,30 +10670,9 @@
         "summary": "Create an image",
         "description": "Pull or import an image.",
         "operationId": "ImageCreate",
-        "consumes": [
-          "text/plain",
-          "application/octet-stream"
+        "tags": [
+          "Image"
         ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "no error"
-          },
-          "404": {
-            "description": "repository does not exist or no read access",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "fromImage",
@@ -10727,15 +10705,6 @@
             "type": "string"
           },
           {
-            "name": "inputImage",
-            "in": "body",
-            "description": "Image content if the value `-` has been specified in fromSrc query parameter",
-            "schema": {
-              "type": "string"
-            },
-            "required": false
-          },
-          {
             "name": "X-Registry-Auth",
             "in": "header",
             "description": "A base64url-encoded auth configuration.\n\nRefer to the [authentication section](#section/Authentication) for\ndetails.\n",
@@ -10746,10 +10715,10 @@
             "in": "query",
             "description": "Apply `Dockerfile` instructions to the image that is created,\nfor example: `changes=ENV DEBUG=true`.\nNote that `ENV DEBUG=true` should be URI component encoded.\nRepeat the parameter to apply multiple instructions.\n\nSupported `Dockerfile` instructions:\n`CMD`|`ENTRYPOINT`|`ENV`|`EXPOSE`|`ONBUILD`|`USER`|`VOLUME`|`WORKDIR`\n",
             "type": "array",
-            "collectionFormat": "multi",
             "items": {
               "type": "string"
-            }
+            },
+            "collectionFormat": "multi"
           },
           {
             "name": "platform",
@@ -10757,11 +10726,41 @@
             "description": "Platform in the format os[/arch[/variant]].\n\nWhen used in combination with the `fromImage` option, the daemon checks\nif the given image is present in the local image cache with the given\nOS and Architecture, and otherwise attempts to pull the image. If the\noption is not set, the host's native OS and Architecture are used.\nIf the given image does not exist in the local image cache, the daemon\nattempts to pull the image with the host's native OS and Architecture.\nIf the given image does exists in the local image cache, but its OS or\narchitecture does not match, a warning is produced.\n\nWhen used with the `fromSrc` option to import an image from an archive,\nthis option sets the platform information for the imported image. If\nthe option is not set, the host's native OS and Architecture are used\nfor the imported image.\n",
             "type": "string",
             "default": ""
+          },
+          {
+            "name": "inputImage",
+            "in": "body",
+            "description": "Image content if the value `-` has been specified in fromSrc query parameter",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
           }
         ],
-        "tags": [
-          "Image"
-        ]
+        "consumes": [
+          "text/plain",
+          "application/octet-stream"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "no error"
+          },
+          "404": {
+            "description": "repository does not exist or no read access",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/images/{name}/json": {
@@ -10769,6 +10768,32 @@
         "summary": "Inspect an image",
         "description": "Return low-level information about an image.",
         "operationId": "ImageInspect",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Image name or id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "manifests",
+            "in": "query",
+            "description": "Include Manifests in the image summary.\n\nThe `manifests` and `platform` options are mutually exclusive, and\nan error is produced if both are set.",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "JSON-encoded OCI platform to select the platform-variant.\nIf omitted, it defaults to any locally available platform,\nprioritizing the daemon's host platform.\n\nIf the daemon provides a multi-platform image store, this selects\nthe platform-variant to show inspect. If the image is\na single-platform image, or if the multi-platform image does not\nprovide a variant matching the given platform, an error is returned.\n\nThe `platform` and `manifests` options are mutually exclusive, and\nan error is produced if both are set.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -10796,33 +10821,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Image name or id",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "manifests",
-            "in": "query",
-            "description": "Include Manifests in the image summary.\n\nThe `manifests` and `platform` options are mutually exclusive, and\nan error is produced if both are set.",
-            "type": "boolean",
-            "default": false,
-            "required": false
-          },
-          {
-            "name": "platform",
-            "type": "string",
-            "in": "query",
-            "description": "JSON-encoded OCI platform to select the platform-variant.\nIf omitted, it defaults to any locally available platform,\nprioritizing the daemon's host platform.\n\nIf the daemon provides a multi-platform image store, this selects\nthe platform-variant to show inspect. If the image is\na single-platform image, or if the multi-platform image does not\nprovide a variant matching the given platform, an error is returned.\n\nThe `platform` and `manifests` options are mutually exclusive, and\nan error is produced if both are set.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`"
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/{name}/attestations": {
@@ -10830,6 +10829,48 @@
         "summary": "Get attestation statements for an image",
         "description": "Return the in-toto attestation statements attached to the image for the\ngiven platform. The daemon locates the attestation manifest(s) that\nreference the matching platform image manifest, reads their statement\nlayers, and returns the verbatim statement JSON together with layer\nmetadata.\n\nIf the image has no attestations an empty array is returned.\n",
         "operationId": "ImageAttestations",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Image name or id",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "JSON-encoded OCI platform to select the image variant whose\nattestations to return.\nIf omitted, the daemon's default (host) platform is used.\n\nOnly one platform value is currently accepted; passing more than\none returns an error. The parameter is declared as an array so the\nwire shape can accept multiple values in the future without an\nAPI version bump.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"amd64\"}`",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "type",
+            "in": "query",
+            "description": "In-toto predicate type URI to filter returned statements. May be\nrepeated to accept any of several predicate types. If omitted, all\nstatements are returned.\n\nExample: `type=https://slsa.dev/provenance/v0.2&type=https://spdx.dev/Document`",
+            "required": false,
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "statement",
+            "in": "query",
+            "description": "Include the verbatim in-toto statement body in each returned\nentry. Defaults to false; when omitted or false, only the\ndescriptor and predicate type are returned and statement blobs\nare not read.",
+            "required": false,
+            "type": "boolean",
+            "default": false
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -10867,49 +10908,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Image name or id",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "platform",
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi",
-            "in": "query",
-            "description": "JSON-encoded OCI platform to select the image variant whose\nattestations to return.\nIf omitted, the daemon's default (host) platform is used.\n\nOnly one platform value is currently accepted; passing more than\none returns an error. The parameter is declared as an array so the\nwire shape can accept multiple values in the future without an\nAPI version bump.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"amd64\"}`",
-            "required": false
-          },
-          {
-            "name": "type",
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi",
-            "in": "query",
-            "description": "In-toto predicate type URI to filter returned statements. May be\nrepeated to accept any of several predicate types. If omitted, all\nstatements are returned.\n\nExample: `type=https://slsa.dev/provenance/v0.2&type=https://spdx.dev/Document`",
-            "required": false
-          },
-          {
-            "name": "statement",
-            "type": "boolean",
-            "in": "query",
-            "description": "Include the verbatim in-toto statement body in each returned\nentry. Defaults to false; when omitted or false, only the\ndescriptor and predicate type are returned and statement blobs\nare not read.",
-            "default": false,
-            "required": false
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/{name}/history": {
@@ -10917,6 +10916,24 @@
         "summary": "Get the history of an image",
         "description": "Return parent layers of an image.",
         "operationId": "ImageHistory",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Image name or ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "JSON-encoded OCI platform to select the platform-variant.\nIf omitted, it defaults to any locally available platform,\nprioritizing the daemon's host platform.\n\nIf the daemon provides a multi-platform image store, this selects\nthe platform-variant to show the history for. If the image is\na single-platform image, or if the multi-platform image does not\nprovide a variant matching the given platform, an error is returned.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -10976,25 +10993,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Image name or ID",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "platform",
-            "type": "string",
-            "in": "query",
-            "description": "JSON-encoded OCI platform to select the platform-variant.\nIf omitted, it defaults to any locally available platform,\nprioritizing the daemon's host platform.\n\nIf the daemon provides a multi-platform image store, this selects\nthe platform-variant to show the history for. If the image is\na single-platform image, or if the multi-platform image does not\nprovide a variant matching the given platform, an error is returned.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n"
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/{name}/push": {
@@ -11002,6 +11001,37 @@
         "summary": "Push an image",
         "description": "Push an image to a registry.\n\nIf you wish to push an image on to a private registry, that image must\nalready have a tag which references the registry. For example,\n`registry.example.com/myimage:latest`.\n\nThe push is cancelled if the HTTP connection is closed.\n",
         "operationId": "ImagePush",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Name of the image to push. For example, `registry.example.com/myimage`.\nThe image must be present in the local image store with the same name.\n\nThe name should be provided without tag; if a tag is provided, it\nis ignored. For example, `registry.example.com/myimage:latest` is\nconsidered equivalent to `registry.example.com/myimage`.\n\nUse the `tag` parameter to specify the tag to push.\n",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "Tag of the image to push. For example, `latest`. If no tag is provided,\nall tags of the given image that are present in the local image store\nare pushed.\n",
+            "type": "string"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "JSON-encoded OCI platform to select the platform-variant to push.\nIf not provided, all available variants will attempt to be pushed.\n\nIf the daemon provides a multi-platform image store, this selects\nthe platform-variant to push to the registry. If the image is\na single-platform image, or if the multi-platform image does not\nprovide a variant matching the given platform, an error is returned.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n",
+            "type": "string"
+          },
+          {
+            "name": "X-Registry-Auth",
+            "in": "header",
+            "description": "A base64url-encoded auth configuration.\n\nRefer to the [authentication section](#section/Authentication) for\ndetails.\n",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "consumes": [
           "application/octet-stream"
         ],
@@ -11021,38 +11051,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Name of the image to push. For example, `registry.example.com/myimage`.\nThe image must be present in the local image store with the same name.\n\nThe name should be provided without tag; if a tag is provided, it\nis ignored. For example, `registry.example.com/myimage:latest` is\nconsidered equivalent to `registry.example.com/myimage`.\n\nUse the `tag` parameter to specify the tag to push.\n",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "tag",
-            "in": "query",
-            "description": "Tag of the image to push. For example, `latest`. If no tag is provided,\nall tags of the given image that are present in the local image store\nare pushed.\n",
-            "type": "string"
-          },
-          {
-            "name": "platform",
-            "type": "string",
-            "in": "query",
-            "description": "JSON-encoded OCI platform to select the platform-variant to push.\nIf not provided, all available variants will attempt to be pushed.\n\nIf the daemon provides a multi-platform image store, this selects\nthe platform-variant to push to the registry. If the image is\na single-platform image, or if the multi-platform image does not\nprovide a variant matching the given platform, an error is returned.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n"
-          },
-          {
-            "name": "X-Registry-Auth",
-            "in": "header",
-            "description": "A base64url-encoded auth configuration.\n\nRefer to the [authentication section](#section/Authentication) for\ndetails.\n",
-            "type": "string",
-            "required": true
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/{name}/tag": {
@@ -11060,6 +11059,30 @@
         "summary": "Tag an image",
         "description": "Create a tag that refers to a source image.\n\nThis creates an additional reference (tag) to the source image. The tag\ncan include a different repository name and/or tag. If the repository\nor tag already exists, it will be overwritten.\n",
         "operationId": "ImageTag",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Image name or ID to tag.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "repo",
+            "in": "query",
+            "description": "The repository to tag in. For example, `someuser/someimage`.",
+            "type": "string"
+          },
+          {
+            "name": "tag",
+            "in": "query",
+            "description": "The name of the new tag.",
+            "type": "string"
+          }
+        ],
         "responses": {
           "201": {
             "description": "No error"
@@ -11088,31 +11111,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Image name or ID to tag.",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "repo",
-            "in": "query",
-            "description": "The repository to tag in. For example, `someuser/someimage`.",
-            "type": "string"
-          },
-          {
-            "name": "tag",
-            "in": "query",
-            "description": "The name of the new tag.",
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/{name}": {
@@ -11120,6 +11119,42 @@
         "summary": "Remove an image",
         "description": "Remove an image, along with any untagged parent images that were\nreferenced by that image.\n\nImages can't be removed if they have descendant images, are being\nused by a running container or are being used by a build.\n",
         "operationId": "ImageDelete",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Image name or ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "Remove the image even if it is being used by stopped containers or has other tags",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "noprune",
+            "in": "query",
+            "description": "Do not delete untagged parent images",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "platforms",
+            "in": "query",
+            "description": "Select platform-specific content to delete.\nRepeat the parameter to select multiple platforms.\nEach platform is a OCI platform encoded as a JSON string.\n",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -11164,43 +11199,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Image name or ID",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "force",
-            "in": "query",
-            "description": "Remove the image even if it is being used by stopped containers or has other tags",
-            "type": "boolean",
-            "default": false
-          },
-          {
-            "name": "noprune",
-            "in": "query",
-            "description": "Do not delete untagged parent images",
-            "type": "boolean",
-            "default": false
-          },
-          {
-            "name": "platforms",
-            "in": "query",
-            "description": "Select platform-specific content to delete.\nRepeat the parameter to select multiple platforms.\nEach platform is a OCI platform encoded as a JSON string.\n",
-            "type": "array",
-            "collectionFormat": "multi",
-            "items": {
-              "type": "string"
-            }
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/search": {
@@ -11208,6 +11207,30 @@
         "summary": "Search images",
         "description": "Search for an image on Docker Hub.",
         "operationId": "ImageSearch",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "term",
+            "in": "query",
+            "description": "Term to search",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Maximum number of results to return",
+            "type": "integer"
+          },
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "A JSON encoded value of the filters (a `map[string][]string`) to process on the images list. Available filters:\n\n- `is-official=(true|false)`\n- `stars=<number>` Matches images that has at least 'number' stars.\n",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -11272,40 +11295,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "term",
-            "in": "query",
-            "description": "Term to search",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "limit",
-            "in": "query",
-            "description": "Maximum number of results to return",
-            "type": "integer"
-          },
-          {
-            "name": "filters",
-            "in": "query",
-            "description": "A JSON encoded value of the filters (a `map[string][]string`) to process on the images list. Available filters:\n\n- `is-official=(true|false)`\n- `stars=<number>` Matches images that has at least 'number' stars.\n",
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/prune": {
       "post": {
         "summary": "Delete unused images",
-        "produces": [
-          "application/json"
-        ],
         "operationId": "ImagePrune",
+        "tags": [
+          "Image"
+        ],
         "parameters": [
           {
             "name": "filters",
@@ -11313,6 +11312,9 @@
             "description": "Filters to process on the prune list, encoded as JSON (a `map[string][]string`). Available filters:\n\n- `dangling=<boolean>` When set to `true` (or `1`), prune only\n   unused *and* untagged images. When set to `false`\n   (or `0`), all unused images are pruned.\n- `until=<string>` Prune images created before this timestamp. The `<timestamp>` can be Unix timestamps, date formatted timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the daemon machine’s time.\n- `label` (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) Prune images with (or without, in case `label!=...` is used) the specified labels.\n",
             "type": "string"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -11342,10 +11344,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/auth": {
@@ -11353,6 +11352,19 @@
         "summary": "Check auth configuration",
         "description": "Validate credentials for a registry and, if available, get an identity\ntoken for accessing the registry without password.\n",
         "operationId": "SystemAuth",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "authConfig",
+            "in": "body",
+            "description": "Authentication to check",
+            "schema": {
+              "$ref": "#/definitions/AuthConfig"
+            }
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -11381,26 +11393,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "authConfig",
-            "in": "body",
-            "description": "Authentication to check",
-            "schema": {
-              "$ref": "#/definitions/AuthConfig"
-            }
-          }
-        ],
-        "tags": [
-          "System"
-        ]
+        }
       }
     },
     "/info": {
       "get": {
         "summary": "Get system information",
         "operationId": "SystemInfo",
+        "tags": [
+          "System"
+        ],
         "produces": [
           "application/json"
         ],
@@ -11417,10 +11419,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "System"
-        ]
+        }
       }
     },
     "/version": {
@@ -11428,6 +11427,9 @@
         "summary": "Get version",
         "description": "Returns the version of Docker that is running and various information about the system that Docker is running on.",
         "operationId": "SystemVersion",
+        "tags": [
+          "System"
+        ],
         "produces": [
           "application/json"
         ],
@@ -11444,10 +11446,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "System"
-        ]
+        }
       }
     },
     "/_ping": {
@@ -11455,31 +11454,32 @@
         "summary": "Ping",
         "description": "This is a dummy endpoint you can use to test if the server is accessible.",
         "operationId": "SystemPing",
+        "tags": [
+          "System"
+        ],
         "produces": [
-          "text/plain"
+          "text/plain",
+          "application/json"
         ],
         "responses": {
           "200": {
             "description": "no error",
-            "schema": {
-              "type": "string",
-              "example": "OK"
-            },
             "headers": {
               "Api-Version": {
-                "type": "string",
-                "description": "Max API Version the server supports"
+                "description": "Max API Version the server supports",
+                "type": "string"
               },
               "Builder-Version": {
-                "type": "string",
                 "description": "Default version of docker image builder\n\nThe default on Linux is version \"2\" (BuildKit), but the daemon\ncan be configured to recommend version \"1\" (classic Builder).\nWindows does not yet support BuildKit for native Windows images,\nand uses \"1\" (classic builder) as a default.\n\nThis value is a recommendation as advertised by the daemon, and\nit is up to the client to choose which builder to use.\n",
+                "type": "string",
                 "default": "2"
               },
               "Docker-Experimental": {
-                "type": "boolean",
-                "description": "If the server is running with experimental mode enabled"
+                "description": "If the server is running with experimental mode enabled",
+                "type": "boolean"
               },
               "Swarm": {
+                "description": "Contains information about Swarm status of the daemon,\nand if the daemon is acting as a manager or worker node.\n",
                 "type": "string",
                 "enum": [
                   "inactive",
@@ -11489,7 +11489,6 @@
                   "active/worker",
                   "active/manager"
                 ],
-                "description": "Contains information about Swarm status of the daemon,\nand if the daemon is acting as a manager or worker node.\n",
                 "default": "inactive"
               },
               "Cache-Control": {
@@ -11500,13 +11499,14 @@
                 "type": "string",
                 "default": "no-cache"
               }
+            },
+            "schema": {
+              "type": "string",
+              "example": "OK"
             }
           },
           "500": {
             "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            },
             "headers": {
               "Cache-Control": {
                 "type": "string",
@@ -11516,41 +11516,42 @@
                 "type": "string",
                 "default": "no-cache"
               }
+            },
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "System"
-        ]
+        }
       },
       "head": {
         "summary": "Ping",
         "description": "This is a dummy endpoint you can use to test if the server is accessible.",
         "operationId": "SystemPingHead",
+        "tags": [
+          "System"
+        ],
         "produces": [
-          "text/plain"
+          "text/plain",
+          "application/json"
         ],
         "responses": {
           "200": {
             "description": "no error",
-            "schema": {
-              "type": "string",
-              "example": "(empty)"
-            },
             "headers": {
               "Api-Version": {
-                "type": "string",
-                "description": "Max API Version the server supports"
+                "description": "Max API Version the server supports",
+                "type": "string"
               },
               "Builder-Version": {
-                "type": "string",
-                "description": "Default version of docker image builder"
+                "description": "Default version of docker image builder",
+                "type": "string"
               },
               "Docker-Experimental": {
-                "type": "boolean",
-                "description": "If the server is running with experimental mode enabled"
+                "description": "If the server is running with experimental mode enabled",
+                "type": "boolean"
               },
               "Swarm": {
+                "description": "Contains information about Swarm status of the daemon,\nand if the daemon is acting as a manager or worker node.\n",
                 "type": "string",
                 "enum": [
                   "inactive",
@@ -11560,7 +11561,6 @@
                   "active/worker",
                   "active/manager"
                 ],
-                "description": "Contains information about Swarm status of the daemon,\nand if the daemon is acting as a manager or worker node.\n",
                 "default": "inactive"
               },
               "Cache-Control": {
@@ -11571,6 +11571,10 @@
                 "type": "string",
                 "default": "no-cache"
               }
+            },
+            "schema": {
+              "type": "string",
+              "example": "(empty)"
             }
           },
           "500": {
@@ -11579,56 +11583,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "System"
-        ]
+        }
       }
     },
     "/commit": {
       "post": {
         "summary": "Create a new image from a container",
         "operationId": "ImageCommit",
-        "consumes": [
-          "application/json"
+        "tags": [
+          "Image"
         ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "201": {
-            "description": "no error",
-            "schema": {
-              "$ref": "#/definitions/IDResponse"
-            }
-          },
-          "404": {
-            "description": "no such container",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            },
-            "examples": {
-              "application/json": {
-                "message": "No such container: c2ada9df5af8"
-              }
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
-          {
-            "name": "containerConfig",
-            "in": "body",
-            "description": "The container configuration",
-            "schema": {
-              "$ref": "#/definitions/ContainerConfig"
-            }
-          },
           {
             "name": "container",
             "in": "query",
@@ -11671,34 +11636,38 @@
             "in": "query",
             "description": "`Dockerfile` instructions to apply while committing",
             "type": "string"
+          },
+          {
+            "name": "containerConfig",
+            "in": "body",
+            "description": "The container configuration",
+            "schema": {
+              "$ref": "#/definitions/ContainerConfig"
+            }
           }
         ],
-        "tags": [
-          "Image"
-        ]
-      }
-    },
-    "/events": {
-      "get": {
-        "summary": "Monitor events",
-        "description": "Stream real-time events from the server.\n\nVarious objects within Docker report events when something happens to them.\n\nContainers report these events: `attach`, `commit`, `copy`, `create`, `destroy`, `detach`, `die`, `exec_create`, `exec_detach`, `exec_start`, `exec_die`, `export`, `health_status`, `kill`, `oom`, `pause`, `rename`, `resize`, `restart`, `start`, `stop`, `top`, `unpause`, `update`, and `prune`\n\nImages report these events: `create`, `delete`, `import`, `load`, `pull`, `push`, `save`, `tag`, `untag`, and `prune`\n\nVolumes report these events: `create`, `mount`, `unmount`, `destroy`, and `prune`\n\nNetworks report these events: `create`, `connect`, `disconnect`, `destroy`, `update`, `remove`, and `prune`\n\nThe Docker daemon reports these events: `reload`\n\nServices report these events: `create`, `update`, and `remove`\n\nNodes report these events: `create`, `update`, and `remove`\n\nSecrets report these events: `create`, `update`, and `remove`\n\nConfigs report these events: `create`, `update`, and `remove`\n\nThe Builder reports `prune` events\n",
-        "operationId": "SystemEvents",
+        "consumes": [
+          "application/json"
+        ],
         "produces": [
-          "application/jsonl",
-          "application/x-ndjson",
-          "application/json-seq"
+          "application/json"
         ],
         "responses": {
-          "200": {
+          "201": {
             "description": "no error",
             "schema": {
-              "$ref": "#/definitions/EventMessage"
+              "$ref": "#/definitions/IDResponse"
             }
           },
-          "400": {
-            "description": "bad parameter",
+          "404": {
+            "description": "no such container",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
+            },
+            "examples": {
+              "application/json": {
+                "message": "No such container: c2ada9df5af8"
+              }
             }
           },
           "500": {
@@ -11707,7 +11676,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/events": {
+      "get": {
+        "summary": "Monitor events",
+        "description": "Stream real-time events from the server.\n\nVarious objects within Docker report events when something happens to them.\n\nContainers report these events: `attach`, `commit`, `copy`, `create`, `destroy`, `detach`, `die`, `exec_create`, `exec_detach`, `exec_start`, `exec_die`, `export`, `health_status`, `kill`, `oom`, `pause`, `rename`, `resize`, `restart`, `start`, `stop`, `top`, `unpause`, `update`, and `prune`\n\nImages report these events: `create`, `delete`, `import`, `load`, `pull`, `push`, `save`, `tag`, `untag`, and `prune`\n\nVolumes report these events: `create`, `mount`, `unmount`, `destroy`, and `prune`\n\nNetworks report these events: `create`, `connect`, `disconnect`, `destroy`, `update`, `remove`, and `prune`\n\nThe Docker daemon reports these events: `reload`\n\nServices report these events: `create`, `update`, and `remove`\n\nNodes report these events: `create`, `update`, and `remove`\n\nSecrets report these events: `create`, `update`, and `remove`\n\nConfigs report these events: `create`, `update`, and `remove`\n\nThe Builder reports `prune` events\n",
+        "operationId": "SystemEvents",
+        "tags": [
+          "System"
+        ],
         "parameters": [
           {
             "name": "since",
@@ -11728,15 +11707,66 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "System"
-        ]
+        "produces": [
+          "application/jsonl",
+          "application/x-ndjson",
+          "application/json-seq",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "no error",
+            "schema": {
+              "$ref": "#/definitions/EventMessage"
+            }
+          },
+          "400": {
+            "description": "bad parameter",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/system/df": {
       "get": {
         "summary": "Get data usage information",
         "operationId": "SystemDataUsage",
+        "tags": [
+          "System"
+        ],
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "description": "Object types, for which to compute and return data.\n",
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "container",
+                "image",
+                "volume",
+                "build-cache"
+              ]
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "verbose",
+            "in": "query",
+            "description": "Show detailed information on space usage.\n",
+            "type": "boolean",
+            "default": false
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -11765,35 +11795,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "type",
-            "in": "query",
-            "description": "Object types, for which to compute and return data.\n",
-            "type": "array",
-            "collectionFormat": "multi",
-            "items": {
-              "type": "string",
-              "enum": [
-                "container",
-                "image",
-                "volume",
-                "build-cache"
-              ]
-            }
-          },
-          {
-            "name": "verbose",
-            "in": "query",
-            "description": "Show detailed information on space usage.\n",
-            "type": "boolean",
-            "default": false
-          }
-        ],
-        "tags": [
-          "System"
-        ]
+        }
       }
     },
     "/images/{name}/get": {
@@ -11801,8 +11803,31 @@
         "summary": "Export an image",
         "description": "Get a tarball containing all images and metadata for a repository.\n\nIf `name` is a specific name and tag (e.g. `ubuntu:latest`), then only that image (and its parents) are returned. If `name` is an image ID, similarly only that image (and its parents) are returned, but with the exclusion of the `repositories` file in the tarball, as there were no image names referenced.\n\n### Image tarball format\n\nAn image tarball contains [Content as defined in the OCI Image Layout Specification](https://github.com/opencontainers/image-spec/blob/v1.1.1/image-layout.md#content).\n\nAdditionally, includes the manifest.json file associated with a backwards compatible docker save format.\n\nIf the tarball defines a repository, the tarball should also include a `repositories` file at the root that contains a list of repository and tag names mapped to layer IDs.\n\n```json\n{\n  \"hello-world\": {\n    \"latest\": \"565a9d68a73f6706862bfe8409a7f659776d4d60a8d096eb4a3cbce6999cc2a1\"\n  }\n}\n```\n",
         "operationId": "ImageGet",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Image name or ID",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "JSON encoded OCI platform describing a platform which will be used\nto select a platform-specific image to be saved if the image is\nmulti-platform.\nIf not provided, the full multi-platform image will be saved.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
         "produces": [
-          "application/x-tar"
+          "application/x-tar",
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -11818,29 +11843,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Image name or ID",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "platform",
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi",
-            "in": "query",
-            "description": "JSON encoded OCI platform describing a platform which will be used\nto select a platform-specific image to be saved if the image is\nmulti-platform.\nIf not provided, the full multi-platform image will be saved.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n"
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/get": {
@@ -11848,8 +11851,34 @@
         "summary": "Export several images",
         "description": "Get a tarball containing all images and metadata for several image\nrepositories.\n\nFor each value of the `names` parameter: if it is a specific name and\ntag (e.g. `ubuntu:latest`), then only that image (and its parents) are\nreturned; if it is an image ID, similarly only that image (and its parents)\nare returned and there would be no names referenced in the 'repositories'\nfile for this image ID.\n\nFor details on the format, see the [export image endpoint](#operation/ImageGet).\n",
         "operationId": "ImageGetAll",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "names",
+            "in": "query",
+            "description": "Image names to filter by. Repeat the parameter for multiple images.",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "JSON encoded OCI platform(s) which will be used to select the\nplatform-specific image(s) to be saved if the image is\nmulti-platform. If not provided, the full multi-platform image\nwill be saved.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          }
+        ],
         "produces": [
-          "application/x-tar"
+          "application/x-tar",
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -11865,32 +11894,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "names",
-            "in": "query",
-            "description": "Image names to filter by. Repeat the parameter for multiple images.",
-            "type": "array",
-            "collectionFormat": "multi",
-            "items": {
-              "type": "string"
-            }
-          },
-          {
-            "name": "platform",
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi",
-            "in": "query",
-            "description": "JSON encoded OCI platform(s) which will be used to select the\nplatform-specific image(s) to be saved if the image is\nmulti-platform. If not provided, the full multi-platform image\nwill be saved.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n"
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/images/load": {
@@ -11898,6 +11902,37 @@
         "summary": "Import images",
         "description": "Load a set of images and tags into a repository.\n\nFor details on the format, see the [export image endpoint](#operation/ImageGet).\n",
         "operationId": "ImageLoad",
+        "tags": [
+          "Image"
+        ],
+        "parameters": [
+          {
+            "name": "quiet",
+            "in": "query",
+            "description": "Suppress progress details during load.",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "platform",
+            "in": "query",
+            "description": "JSON encoded OCI platform(s) which will be used to select the\nplatform-specific image(s) to load if the image is\nmulti-platform. If not provided, the full multi-platform image\nwill be loaded.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n",
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "collectionFormat": "multi"
+          },
+          {
+            "name": "imagesTarball",
+            "in": "body",
+            "description": "Tar archive containing images",
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          }
+        ],
         "consumes": [
           "application/x-tar"
         ],
@@ -11914,38 +11949,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "imagesTarball",
-            "in": "body",
-            "description": "Tar archive containing images",
-            "schema": {
-              "type": "string",
-              "format": "binary"
-            }
-          },
-          {
-            "name": "quiet",
-            "in": "query",
-            "description": "Suppress progress details during load.",
-            "type": "boolean",
-            "default": false
-          },
-          {
-            "name": "platform",
-            "type": "array",
-            "items": {
-              "type": "string"
-            },
-            "collectionFormat": "multi",
-            "in": "query",
-            "description": "JSON encoded OCI platform(s) which will be used to select the\nplatform-specific image(s) to load if the image is\nmulti-platform. If not provided, the full multi-platform image\nwill be loaded.\n\nExample: `{\"os\": \"linux\", \"architecture\": \"arm\", \"variant\": \"v5\"}`\n"
-          }
-        ],
-        "tags": [
-          "Image"
-        ]
+        }
       }
     },
     "/containers/{id}/exec": {
@@ -11953,48 +11957,22 @@
         "summary": "Create an exec instance",
         "description": "Run a command inside a running container.",
         "operationId": "ContainerExec",
-        "consumes": [
-          "application/json"
+        "tags": [
+          "Exec"
         ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "201": {
-            "description": "no error",
-            "schema": {
-              "$ref": "#/definitions/IDResponse"
-            }
-          },
-          "404": {
-            "description": "no such container",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            },
-            "examples": {
-              "application/json": {
-                "message": "No such container: c2ada9df5af8"
-              }
-            }
-          },
-          "409": {
-            "description": "container is paused",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID or name of container",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "execConfig",
             "in": "body",
             "description": "Exec configuration",
+            "required": true,
             "schema": {
               "type": "object",
               "title": "ExecConfig",
@@ -12076,20 +12054,46 @@
                   "BAZ=quux"
                 ]
               }
-            },
-            "required": true
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID or name of container",
-            "type": "string",
-            "required": true
+            }
           }
         ],
-        "tags": [
-          "Exec"
-        ]
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "no error",
+            "schema": {
+              "$ref": "#/definitions/IDResponse"
+            }
+          },
+          "404": {
+            "description": "no such container",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "examples": {
+              "application/json": {
+                "message": "No such container: c2ada9df5af8"
+              }
+            }
+          },
+          "409": {
+            "description": "container is paused",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/exec/{id}/start": {
@@ -12097,31 +12101,17 @@
         "summary": "Start an exec instance",
         "description": "Starts a previously set up exec instance. If detach is true, this endpoint\nreturns immediately after starting the command. Otherwise, it sets up an\ninteractive session with the command.\n",
         "operationId": "ExecStart",
-        "consumes": [
-          "application/json"
+        "tags": [
+          "Exec"
         ],
-        "produces": [
-          "application/vnd.docker.raw-stream",
-          "application/vnd.docker.multiplexed-stream"
-        ],
-        "responses": {
-          "200": {
-            "description": "No error"
-          },
-          "404": {
-            "description": "No such exec instance",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "409": {
-            "description": "Container is stopped or paused",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Exec instance ID",
+            "required": true,
+            "type": "string"
+          },
           {
             "name": "execStartConfig",
             "in": "body",
@@ -12156,34 +12146,19 @@
                 }
               }
             }
-          },
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Exec instance ID",
-            "required": true,
-            "type": "string"
           }
         ],
-        "tags": [
-          "Exec"
-        ]
-      }
-    },
-    "/exec/{id}/resize": {
-      "post": {
-        "summary": "Resize an exec instance",
-        "description": "Resize the TTY session used by an exec instance. This endpoint only works\nif `tty` was specified as part of creating and starting the exec instance.\n",
-        "operationId": "ExecResize",
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/vnd.docker.raw-stream",
+          "application/vnd.docker.multiplexed-stream",
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "No error"
-          },
-          "400": {
-            "description": "bad parameter",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
           },
           "404": {
             "description": "No such exec instance",
@@ -12191,13 +12166,23 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           },
-          "500": {
-            "description": "Server error",
+          "409": {
+            "description": "Container is stopped or paused",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/exec/{id}/resize": {
+      "post": {
+        "summary": "Resize an exec instance",
+        "description": "Resize the TTY session used by an exec instance. This endpoint only works\nif `tty` was specified as part of creating and starting the exec instance.\n",
+        "operationId": "ExecResize",
+        "tags": [
+          "Exec"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -12221,9 +12206,29 @@
             "type": "integer"
           }
         ],
-        "tags": [
-          "Exec"
-        ]
+        "responses": {
+          "200": {
+            "description": "No error"
+          },
+          "400": {
+            "description": "bad parameter",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "No such exec instance",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/exec/{id}/json": {
@@ -12231,6 +12236,18 @@
         "summary": "Inspect an exec instance",
         "description": "Return low-level information about an exec instance.",
         "operationId": "ExecInspect",
+        "tags": [
+          "Exec"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Exec instance ID",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -12314,25 +12331,25 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Exec instance ID",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Exec"
-        ]
+        }
       }
     },
     "/volumes": {
       "get": {
         "summary": "List volumes",
         "operationId": "VolumeList",
+        "tags": [
+          "Volume"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the volumes list. Available filters:\n\n- `dangling=<boolean>` When set to `true` (or `1`), returns all\n   volumes that are not in use by a container. When set to `false`\n   (or `0`), only volumes that are in use by one or more\n   containers are returned.\n- `driver=<volume-driver-name>` Matches volumes based on their driver.\n- `label=<key>` or `label=<key>:<value>` Matches volumes based on\n   the presence of a `label` alone or a `label` and a value.\n- `name=<volume-name>` Matches all or part of a volume name.\n",
+            "type": "string",
+            "format": "json"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -12349,25 +12366,27 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "description": "JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the volumes list. Available filters:\n\n- `dangling=<boolean>` When set to `true` (or `1`), returns all\n   volumes that are not in use by a container. When set to `false`\n   (or `0`), only volumes that are in use by one or more\n   containers are returned.\n- `driver=<volume-driver-name>` Matches volumes based on their driver.\n- `label=<key>` or `label=<key>:<value>` Matches volumes based on\n   the presence of a `label` alone or a `label` and a value.\n- `name=<volume-name>` Matches all or part of a volume name.\n",
-            "type": "string",
-            "format": "json"
-          }
-        ],
-        "tags": [
-          "Volume"
-        ]
+        }
       }
     },
     "/volumes/create": {
       "post": {
         "summary": "Create a volume",
         "operationId": "VolumeCreate",
+        "tags": [
+          "Volume"
+        ],
+        "parameters": [
+          {
+            "name": "volumeConfig",
+            "in": "body",
+            "description": "Volume configuration",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/VolumeCreateRequest"
+            }
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -12387,27 +12406,25 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "volumeConfig",
-            "in": "body",
-            "required": true,
-            "description": "Volume configuration",
-            "schema": {
-              "$ref": "#/definitions/VolumeCreateRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Volume"
-        ]
+        }
       }
     },
     "/volumes/{name}": {
       "get": {
         "summary": "Inspect a volume",
         "operationId": "VolumeInspect",
+        "tags": [
+          "Volume"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "description": "Volume name or ID",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -12430,23 +12447,45 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "description": "Volume name or ID",
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Volume"
-        ]
+        }
       },
       "put": {
         "summary": "\"Update a volume. Valid only for Swarm cluster volumes\"\n",
         "operationId": "VolumeUpdate",
+        "tags": [
+          "Volume"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "The name or ID of the volume",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "The version number of the volume being updated. This is required to\navoid conflicting writes. Found in the volume's `ClusterVolume`\nfield.\n",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The spec of the volume to update. Currently, only Availability may\nchange. All other fields must remain unchanged.\n",
+            "schema": {
+              "type": "object",
+              "description": "Volume configuration",
+              "properties": {
+                "Spec": {
+                  "$ref": "#/definitions/ClusterVolumeSpec"
+                }
+              }
+            }
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -12481,46 +12520,34 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "The name or ID of the volume",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "description": "Volume configuration",
-              "properties": {
-                "Spec": {
-                  "$ref": "#/definitions/ClusterVolumeSpec"
-                }
-              }
-            },
-            "description": "The spec of the volume to update. Currently, only Availability may\nchange. All other fields must remain unchanged.\n"
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "The version number of the volume being updated. This is required to\navoid conflicting writes. Found in the volume's `ClusterVolume`\nfield.\n",
-            "type": "integer",
-            "format": "int64",
-            "required": true
-          }
-        ],
-        "tags": [
-          "Volume"
-        ]
+        }
       },
       "delete": {
         "summary": "Remove a volume",
         "description": "Instruct the driver to remove the volume.",
         "operationId": "VolumeDelete",
+        "tags": [
+          "Volume"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "required": true,
+            "description": "Volume name or ID",
+            "type": "string"
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "Force the removal of the volume",
+            "type": "boolean",
+            "default": false
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "The volume was removed"
@@ -12543,38 +12570,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "required": true,
-            "description": "Volume name or ID",
-            "type": "string"
-          },
-          {
-            "name": "force",
-            "in": "query",
-            "description": "Force the removal of the volume",
-            "type": "boolean",
-            "default": false
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Volume"
-        ]
+        }
       }
     },
     "/volumes/prune": {
       "post": {
         "summary": "Delete unused volumes",
-        "produces": [
-          "application/json"
-        ],
         "operationId": "VolumePrune",
+        "tags": [
+          "Volume"
+        ],
         "parameters": [
           {
             "name": "filters",
@@ -12582,6 +12587,9 @@
             "description": "Filters to process on the prune list, encoded as JSON (a `map[string][]string`).\n\nAvailable filters:\n- `label` (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) Prune volumes with (or without, in case `label!=...` is used) the specified labels.\n- `all` (`all=true`) - Consider all (local) volumes for pruning and not just anonymous volumes.\n",
             "type": "string"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -12611,10 +12619,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Volume"
-        ]
+        }
       }
     },
     "/networks": {
@@ -12622,6 +12627,17 @@
         "summary": "List networks",
         "description": "Returns a list of networks. For details on the format, see the\n[network inspect endpoint](#operation/NetworkInspect).\n\nNote that it uses a different, smaller representation of a network than\ninspecting a single network. For example, the list of containers attached\nto the network is not propagated in API versions 1.28 and up.\n",
         "operationId": "NetworkList",
+        "tags": [
+          "Network"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "JSON encoded value of the filters (a `map[string][]string`) to process\non the networks list.\n\nAvailable filters:\n\n- `dangling=<boolean>` When set to `true` (or `1`), returns all\n   networks that are not in use by a container. When set to `false`\n   (or `0`), only networks that are in use by one or more\n   containers are returned.\n- `driver=<driver-name>` Matches a network's driver.\n- `id=<network-id>` Matches all or part of a network ID.\n- `label=<key>` or `label=<key>=<value>` of a network label.\n- `name=<network-name>` Matches all or part of a network name.\n- `scope=[\"swarm\"|\"global\"|\"local\"]` Filters networks by scope (`swarm`, `global`, or `local`).\n- `type=[\"custom\"|\"builtin\"]` Filters networks by type. The `custom` keyword returns all user-defined networks.\n",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -12709,47 +12725,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "description": "JSON encoded value of the filters (a `map[string][]string`) to process\non the networks list.\n\nAvailable filters:\n\n- `dangling=<boolean>` When set to `true` (or `1`), returns all\n   networks that are not in use by a container. When set to `false`\n   (or `0`), only networks that are in use by one or more\n   containers are returned.\n- `driver=<driver-name>` Matches a network's driver.\n- `id=<network-id>` Matches all or part of a network ID.\n- `label=<key>` or `label=<key>=<value>` of a network label.\n- `name=<network-name>` Matches all or part of a network name.\n- `scope=[\"swarm\"|\"global\"|\"local\"]` Filters networks by scope (`swarm`, `global`, or `local`).\n- `type=[\"custom\"|\"builtin\"]` Filters networks by type. The `custom` keyword returns all user-defined networks.\n",
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Network"
-        ]
+        }
       }
     },
     "/networks/{id}": {
       "get": {
         "summary": "Inspect a network",
         "operationId": "NetworkInspect",
-        "produces": [
-          "application/json"
+        "tags": [
+          "Network"
         ],
-        "responses": {
-          "200": {
-            "description": "No error",
-            "schema": {
-              "$ref": "#/definitions/NetworkInspect"
-            }
-          },
-          "404": {
-            "description": "Network not found",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "id",
@@ -12772,13 +12757,48 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "Network"
-        ]
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "No error",
+            "schema": {
+              "$ref": "#/definitions/NetworkInspect"
+            }
+          },
+          "404": {
+            "description": "Network not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       },
       "delete": {
         "summary": "Remove a network",
         "operationId": "NetworkDelete",
+        "tags": [
+          "Network"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Network ID or name",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "No error"
@@ -12801,66 +12821,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Network ID or name",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Network"
-        ]
+        }
       }
     },
     "/networks/create": {
       "post": {
         "summary": "Create a network",
         "operationId": "NetworkCreate",
-        "consumes": [
-          "application/json"
+        "tags": [
+          "Network"
         ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "201": {
-            "description": "Network created successfully",
-            "schema": {
-              "$ref": "#/definitions/NetworkCreateResponse"
-            }
-          },
-          "400": {
-            "description": "bad parameter",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "403": {
-            "description": "Forbidden operation. This happens when trying to create a network named after a pre-defined network,\nor when trying to create an overlay network on a daemon which is not part of a Swarm cluster.\n",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "plugin not found",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "Server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "networkConfig",
@@ -12957,9 +12927,44 @@
             }
           }
         ],
-        "tags": [
-          "Network"
-        ]
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "Network created successfully",
+            "schema": {
+              "$ref": "#/definitions/NetworkCreateResponse"
+            }
+          },
+          "400": {
+            "description": "bad parameter",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "Forbidden operation. This happens when trying to create a network named after a pre-defined network,\nor when trying to create an overlay network on a daemon which is not part of a Swarm cluster.\n",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "404": {
+            "description": "plugin not found",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "Server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/networks/{id}/connect": {
@@ -12967,6 +12972,26 @@
         "summary": "Connect a container to a network",
         "description": "The network must be either a local-scoped network or a swarm-scoped network with the `attachable` option set. A network cannot be re-attached to a running container",
         "operationId": "NetworkConnect",
+        "tags": [
+          "Network"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Network ID or name",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "container",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/NetworkConnectRequest"
+            }
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -12998,7 +13023,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/networks/{id}/disconnect": {
+      "post": {
+        "summary": "Disconnect a container from a network",
+        "operationId": "NetworkDisconnect",
+        "tags": [
+          "Network"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -13012,19 +13046,10 @@
             "in": "body",
             "required": true,
             "schema": {
-              "$ref": "#/definitions/NetworkConnectRequest"
+              "$ref": "#/definitions/NetworkDisconnectRequest"
             }
           }
         ],
-        "tags": [
-          "Network"
-        ]
-      }
-    },
-    "/networks/{id}/disconnect": {
-      "post": {
-        "summary": "Disconnect a container from a network",
-        "operationId": "NetworkDisconnect",
         "consumes": [
           "application/json"
         ],
@@ -13050,36 +13075,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "Network ID or name",
-            "required": true,
-            "type": "string"
-          },
-          {
-            "name": "container",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/NetworkDisconnectRequest"
-            }
-          }
-        ],
-        "tags": [
-          "Network"
-        ]
+        }
       }
     },
     "/networks/prune": {
       "post": {
         "summary": "Delete unused networks",
-        "produces": [
-          "application/json"
-        ],
         "operationId": "NetworkPrune",
+        "tags": [
+          "Network"
+        ],
         "parameters": [
           {
             "name": "filters",
@@ -13087,6 +13092,9 @@
             "description": "Filters to process on the prune list, encoded as JSON (a `map[string][]string`).\n\nAvailable filters:\n- `until=<timestamp>` Prune networks created before this timestamp. The `<timestamp>` can be Unix timestamps, date formatted timestamps, or Go duration strings (e.g. `10m`, `1h30m`) computed relative to the daemon machine’s time.\n- `label` (`label=<key>`, `label=<key>=<value>`, `label!=<key>`, or `label!=<key>=<value>`) Prune networks with (or without, in case `label!=...` is used) the specified labels.\n",
             "type": "string"
           }
+        ],
+        "produces": [
+          "application/json"
         ],
         "responses": {
           "200": {
@@ -13111,10 +13119,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Network"
-        ]
+        }
       }
     },
     "/plugins": {
@@ -13122,6 +13127,17 @@
         "summary": "List plugins",
         "operationId": "PluginList",
         "description": "Returns information about installed plugins.",
+        "tags": [
+          "Plugin"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the plugin list.\n\nAvailable filters:\n\n- `capability=<capability name>`\n- `enable=<true>|<false>`\n",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -13141,24 +13157,25 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "type": "string",
-            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the plugin list.\n\nAvailable filters:\n\n- `capability=<capability name>`\n- `enable=<true>|<false>`\n"
-          }
-        ],
-        "tags": [
-          "Plugin"
-        ]
+        }
       }
     },
     "/plugins/privileges": {
       "get": {
         "summary": "Get plugin privileges",
         "operationId": "GetPluginPrivileges",
+        "tags": [
+          "Plugin"
+        ],
+        "parameters": [
+          {
+            "name": "remote",
+            "in": "query",
+            "description": "The name of the plugin. The `:latest` tag is optional, and is the\ndefault if omitted.\n",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -13198,19 +13215,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "remote",
-            "in": "query",
-            "description": "The name of the plugin. The `:latest` tag is optional, and is the\ndefault if omitted.\n",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Plugin"
-        ]
+        }
       }
     },
     "/plugins/pull": {
@@ -13218,20 +13223,9 @@
         "summary": "Install a plugin",
         "operationId": "PluginPull",
         "description": "Pulls and installs a plugin. After the plugin is installed, it can be\nenabled using the [`POST /plugins/{name}/enable` endpoint](#operation/PostPluginsEnable).\n",
-        "produces": [
-          "application/json"
+        "tags": [
+          "Plugin"
         ],
-        "responses": {
-          "204": {
-            "description": "no error"
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "remote",
@@ -13287,27 +13281,12 @@
             }
           }
         ],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/plugins/{name}/json": {
-      "get": {
-        "summary": "Inspect a plugin",
-        "operationId": "PluginInspect",
+        "produces": [
+          "application/json"
+        ],
         "responses": {
-          "200": {
-            "description": "no error",
-            "schema": {
-              "$ref": "#/definitions/Plugin"
-            }
-          },
-          "404": {
-            "description": "plugin is not installed",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
+          "204": {
+            "description": "no error"
           },
           "500": {
             "description": "server error",
@@ -13315,7 +13294,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugins/{name}/json": {
+      "get": {
+        "summary": "Inspect a plugin",
+        "operationId": "PluginInspect",
+        "tags": [
+          "Plugin"
+        ],
         "parameters": [
           {
             "name": "name",
@@ -13325,15 +13313,6 @@
             "type": "string"
           }
         ],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/plugins/{name}": {
-      "delete": {
-        "summary": "Remove a plugin",
-        "operationId": "PluginDelete",
         "responses": {
           "200": {
             "description": "no error",
@@ -13353,7 +13332,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugins/{name}": {
+      "delete": {
+        "summary": "Remove a plugin",
+        "operationId": "PluginDelete",
+        "tags": [
+          "Plugin"
+        ],
         "parameters": [
           {
             "name": "name",
@@ -13370,18 +13358,12 @@
             "default": false
           }
         ],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/plugins/{name}/enable": {
-      "post": {
-        "summary": "Enable a plugin",
-        "operationId": "PluginEnable",
         "responses": {
           "200": {
-            "description": "no error"
+            "description": "no error",
+            "schema": {
+              "$ref": "#/definitions/Plugin"
+            }
           },
           "404": {
             "description": "plugin is not installed",
@@ -13395,7 +13377,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugins/{name}/enable": {
+      "post": {
+        "summary": "Enable a plugin",
+        "operationId": "PluginEnable",
+        "tags": [
+          "Plugin"
+        ],
         "parameters": [
           {
             "name": "name",
@@ -13412,15 +13403,6 @@
             "default": 0
           }
         ],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/plugins/{name}/disable": {
-      "post": {
-        "summary": "Disable a plugin",
-        "operationId": "PluginDisable",
         "responses": {
           "200": {
             "description": "no error"
@@ -13437,7 +13419,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugins/{name}/disable": {
+      "post": {
+        "summary": "Disable a plugin",
+        "operationId": "PluginDisable",
+        "tags": [
+          "Plugin"
+        ],
         "parameters": [
           {
             "name": "name",
@@ -13454,21 +13445,12 @@
             "type": "boolean"
           }
         ],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/plugins/{name}/upgrade": {
-      "post": {
-        "summary": "Upgrade a plugin",
-        "operationId": "PluginUpgrade",
         "responses": {
-          "204": {
+          "200": {
             "description": "no error"
           },
           "404": {
-            "description": "plugin not installed",
+            "description": "plugin is not installed",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
             }
@@ -13479,7 +13461,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugins/{name}/upgrade": {
+      "post": {
+        "summary": "Upgrade a plugin",
+        "operationId": "PluginUpgrade",
+        "tags": [
+          "Plugin"
+        ],
         "parameters": [
           {
             "name": "name",
@@ -13538,21 +13529,15 @@
         "produces": [
           "application/json"
         ],
-        "tags": [
-          "Plugin"
-        ]
-      }
-    },
-    "/plugins/create": {
-      "post": {
-        "summary": "Create a plugin",
-        "operationId": "PluginCreate",
-        "consumes": [
-          "application/x-tar"
-        ],
         "responses": {
           "204": {
             "description": "no error"
+          },
+          "404": {
+            "description": "plugin not installed",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
           },
           "500": {
             "description": "server error",
@@ -13560,7 +13545,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/plugins/create": {
+      "post": {
+        "summary": "Create a plugin",
+        "operationId": "PluginCreate",
+        "tags": [
+          "Plugin"
+        ],
         "parameters": [
           {
             "name": "name",
@@ -13579,12 +13573,23 @@
             }
           }
         ],
+        "consumes": [
+          "application/x-tar"
+        ],
         "produces": [
           "application/json"
         ],
-        "tags": [
-          "Plugin"
-        ]
+        "responses": {
+          "204": {
+            "description": "no error"
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/plugins/{name}/push": {
@@ -13592,6 +13597,9 @@
         "summary": "Push a plugin",
         "operationId": "PluginPush",
         "description": "Push a plugin to the registry.\n",
+        "tags": [
+          "Plugin"
+        ],
         "parameters": [
           {
             "name": "name",
@@ -13617,18 +13625,15 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Plugin"
-        ]
+        }
       }
     },
     "/plugins/{name}/set": {
       "post": {
         "summary": "Configure a plugin",
         "operationId": "PluginSet",
-        "consumes": [
-          "application/json"
+        "tags": [
+          "Plugin"
         ],
         "parameters": [
           {
@@ -13652,6 +13657,12 @@
             }
           }
         ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "204": {
             "description": "No error"
@@ -13668,19 +13679,24 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "produces": [
-          "application/json"
-        ],
-        "tags": [
-          "Plugin"
-        ]
+        }
       }
     },
     "/nodes": {
       "get": {
         "summary": "List nodes",
         "operationId": "NodeList",
+        "tags": [
+          "Node"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "Filters to process on the nodes list, encoded as JSON (a `map[string][]string`).\n\nAvailable filters:\n- `id=<node id>`\n- `label=<engine label>`\n- `membership=`(`accepted`|`pending`)`\n- `name=<node name>`\n- `node.label=<node label>`\n- `role=`(`manager`|`worker`)`\n",
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -13703,24 +13719,25 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "description": "Filters to process on the nodes list, encoded as JSON (a `map[string][]string`).\n\nAvailable filters:\n- `id=<node id>`\n- `label=<engine label>`\n- `membership=`(`accepted`|`pending`)`\n- `name=<node name>`\n- `node.label=<node label>`\n- `role=`(`manager`|`worker`)`\n",
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Node"
-        ]
+        }
       }
     },
     "/nodes/{id}": {
       "get": {
         "summary": "Inspect a node",
         "operationId": "NodeInspect",
+        "tags": [
+          "Node"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID or name of the node",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -13746,23 +13763,30 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      },
+      "delete": {
+        "summary": "Delete a node",
+        "operationId": "NodeDelete",
+        "tags": [
+          "Node"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "description": "The ID or name of the node",
-            "type": "string",
-            "required": true
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "force",
+            "in": "query",
+            "description": "Force remove a node from the swarm",
+            "default": false,
+            "type": "boolean"
           }
         ],
-        "tags": [
-          "Node"
-        ]
-      },
-      "delete": {
-        "summary": "Delete a node",
-        "operationId": "NodeDelete",
         "responses": {
           "200": {
             "description": "no error"
@@ -13785,32 +13809,40 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID or name of the node",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "force",
-            "in": "query",
-            "description": "Force remove a node from the swarm",
-            "default": false,
-            "type": "boolean"
-          }
-        ],
-        "tags": [
-          "Node"
-        ]
+        }
       }
     },
     "/nodes/{id}/update": {
       "post": {
         "summary": "Update a node",
         "operationId": "NodeUpdate",
+        "tags": [
+          "Node"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID of the node",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "The version number of the node object being updated. This is required\nto avoid conflicting writes.\n",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "$ref": "#/definitions/NodeSpec"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error"
@@ -13839,40 +13871,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID of the node",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/NodeSpec"
-            }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "The version number of the node object being updated. This is required\nto avoid conflicting writes.\n",
-            "type": "integer",
-            "format": "int64",
-            "required": true
-          }
-        ],
-        "tags": [
-          "Node"
-        ]
+        }
       }
     },
     "/swarm": {
       "get": {
         "summary": "Inspect swarm",
         "operationId": "SwarmInspect",
+        "tags": [
+          "Swarm"
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -13898,48 +13906,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Swarm"
-        ]
+        }
       }
     },
     "/swarm/init": {
       "post": {
         "summary": "Initialize a new swarm",
         "operationId": "SwarmInit",
-        "produces": [
-          "application/json",
-          "text/plain"
+        "tags": [
+          "Swarm"
         ],
-        "responses": {
-          "200": {
-            "description": "no error",
-            "schema": {
-              "description": "The node ID",
-              "type": "string",
-              "example": "7v2t30z9blmxuhnyo6s4cpenp"
-            }
-          },
-          "400": {
-            "description": "bad parameter",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "503": {
-            "description": "node is already part of a swarm",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "body",
@@ -14013,18 +13989,14 @@
             }
           }
         ],
-        "tags": [
-          "Swarm"
-        ]
-      }
-    },
-    "/swarm/join": {
-      "post": {
-        "summary": "Join an existing swarm",
-        "operationId": "SwarmJoin",
         "responses": {
           "200": {
-            "description": "no error"
+            "description": "no error",
+            "schema": {
+              "description": "The node ID",
+              "type": "string",
+              "example": "7v2t30z9blmxuhnyo6s4cpenp"
+            }
           },
           "400": {
             "description": "bad parameter",
@@ -14044,7 +14016,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/swarm/join": {
+      "post": {
+        "summary": "Join an existing swarm",
+        "operationId": "SwarmJoin",
+        "tags": [
+          "Swarm"
+        ],
         "parameters": [
           {
             "name": "body",
@@ -14095,15 +14076,47 @@
             }
           }
         ],
-        "tags": [
-          "Swarm"
-        ]
+        "responses": {
+          "200": {
+            "description": "no error"
+          },
+          "400": {
+            "description": "bad parameter",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "503": {
+            "description": "node is already part of a swarm",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/swarm/leave": {
       "post": {
         "summary": "Leave a swarm",
         "operationId": "SwarmLeave",
+        "tags": [
+          "Swarm"
+        ],
+        "parameters": [
+          {
+            "name": "force",
+            "description": "Force leave swarm, even if this is the last manager or that it will\nbreak the cluster.\n",
+            "in": "query",
+            "type": "boolean",
+            "default": false
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error"
@@ -14120,25 +14133,55 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "force",
-            "description": "Force leave swarm, even if this is the last manager or that it will\nbreak the cluster.\n",
-            "in": "query",
-            "type": "boolean",
-            "default": false
-          }
-        ],
-        "tags": [
-          "Swarm"
-        ]
+        }
       }
     },
     "/swarm/update": {
       "post": {
         "summary": "Update a swarm",
         "operationId": "SwarmUpdate",
+        "tags": [
+          "Swarm"
+        ],
+        "parameters": [
+          {
+            "name": "version",
+            "in": "query",
+            "description": "The version number of the swarm object being updated. This is\nrequired to avoid conflicting writes.\n",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "rotateWorkerToken",
+            "in": "query",
+            "description": "Rotate the worker join token.",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "rotateManagerToken",
+            "in": "query",
+            "description": "Rotate the manager join token.",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "rotateManagerUnlockKey",
+            "in": "query",
+            "description": "Rotate the manager unlock key.",
+            "type": "boolean",
+            "default": false
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/SwarmSpec"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error"
@@ -14161,55 +14204,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/SwarmSpec"
-            }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "The version number of the swarm object being updated. This is\nrequired to avoid conflicting writes.\n",
-            "type": "integer",
-            "format": "int64",
-            "required": true
-          },
-          {
-            "name": "rotateWorkerToken",
-            "in": "query",
-            "description": "Rotate the worker join token.",
-            "type": "boolean",
-            "default": false
-          },
-          {
-            "name": "rotateManagerToken",
-            "in": "query",
-            "description": "Rotate the manager join token.",
-            "type": "boolean",
-            "default": false
-          },
-          {
-            "name": "rotateManagerUnlockKey",
-            "in": "query",
-            "description": "Rotate the manager unlock key.",
-            "type": "boolean",
-            "default": false
-          }
-        ],
-        "tags": [
-          "Swarm"
-        ]
+        }
       }
     },
     "/swarm/unlockkey": {
       "get": {
         "summary": "Get the unlock key",
         "operationId": "SwarmUnlockkey",
+        "tags": [
+          "Swarm"
+        ],
         "consumes": [
           "application/json"
         ],
@@ -14242,21 +14246,15 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Swarm"
-        ]
+        }
       }
     },
     "/swarm/unlock": {
       "post": {
         "summary": "Unlock a locked manager",
         "operationId": "SwarmUnlock",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
+        "tags": [
+          "Swarm"
         ],
         "parameters": [
           {
@@ -14278,6 +14276,12 @@
             }
           }
         ],
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
             "description": "no error"
@@ -14294,16 +14298,30 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Swarm"
-        ]
+        }
       }
     },
     "/services": {
       "get": {
         "summary": "List services",
         "operationId": "ServiceList",
+        "tags": [
+          "Service"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the services list.\n\nAvailable filters:\n\n- `id=<service id>`\n- `label=<service label>`\n- `mode=[\"replicated\"|\"global\"]`\n- `name=<service name>`\n",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Include service status, with count of running and desired tasks.\n",
+            "type": "boolean"
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -14326,75 +14344,23 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "type": "string",
-            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the services list.\n\nAvailable filters:\n\n- `id=<service id>`\n- `label=<service label>`\n- `mode=[\"replicated\"|\"global\"]`\n- `name=<service name>`\n"
-          },
-          {
-            "name": "status",
-            "in": "query",
-            "type": "boolean",
-            "description": "Include service status, with count of running and desired tasks.\n"
-          }
-        ],
-        "tags": [
-          "Service"
-        ]
+        }
       }
     },
     "/services/create": {
       "post": {
         "summary": "Create a service",
         "operationId": "ServiceCreate",
-        "consumes": [
-          "application/json"
+        "tags": [
+          "Service"
         ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "201": {
-            "description": "no error",
-            "schema": {
-              "$ref": "#/definitions/ServiceCreateResponse"
-            }
-          },
-          "400": {
-            "description": "bad parameter",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "403": {
-            "description": "network is not eligible for services",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "409": {
-            "description": "name conflicts with an existing service",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "503": {
-            "description": "node is not part of a swarm",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
+          {
+            "name": "X-Registry-Auth",
+            "in": "header",
+            "description": "A base64url-encoded auth configuration for pulling from private\nregistries.\n\nRefer to the [authentication section](#section/Authentication) for\ndetails.\n",
+            "type": "string"
+          },
           {
             "name": "body",
             "in": "body",
@@ -14510,23 +14476,77 @@
                 }
               ]
             }
-          },
-          {
-            "name": "X-Registry-Auth",
-            "in": "header",
-            "description": "A base64url-encoded auth configuration for pulling from private\nregistries.\n\nRefer to the [authentication section](#section/Authentication) for\ndetails.\n",
-            "type": "string"
           }
         ],
-        "tags": [
-          "Service"
-        ]
+        "consumes": [
+          "application/json"
+        ],
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "201": {
+            "description": "no error",
+            "schema": {
+              "$ref": "#/definitions/ServiceCreateResponse"
+            }
+          },
+          "400": {
+            "description": "bad parameter",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "403": {
+            "description": "network is not eligible for services",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "409": {
+            "description": "name conflicts with an existing service",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "503": {
+            "description": "node is not part of a swarm",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/services/{id}": {
       "get": {
         "summary": "Inspect a service",
         "operationId": "ServiceInspect",
+        "tags": [
+          "Service"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID or name of service.",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "insertDefaults",
+            "in": "query",
+            "description": "Fill empty fields with default values.",
+            "type": "boolean",
+            "default": false
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error",
@@ -14552,7 +14572,14 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      },
+      "delete": {
+        "summary": "Delete a service",
+        "operationId": "ServiceDelete",
+        "tags": [
+          "Service"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -14560,22 +14587,8 @@
             "description": "ID or name of service.",
             "required": true,
             "type": "string"
-          },
-          {
-            "name": "insertDefaults",
-            "in": "query",
-            "description": "Fill empty fields with default values.",
-            "type": "boolean",
-            "default": false
           }
         ],
-        "tags": [
-          "Service"
-        ]
-      },
-      "delete": {
-        "summary": "Delete a service",
-        "operationId": "ServiceDelete",
         "responses": {
           "200": {
             "description": "no error"
@@ -14598,7 +14611,16 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/services/{id}/update": {
+      "post": {
+        "summary": "Update a service",
+        "operationId": "ServiceUpdate",
+        "tags": [
+          "Service"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -14606,61 +14628,35 @@
             "description": "ID or name of service.",
             "required": true,
             "type": "string"
-          }
-        ],
-        "tags": [
-          "Service"
-        ]
-      }
-    },
-    "/services/{id}/update": {
-      "post": {
-        "summary": "Update a service",
-        "operationId": "ServiceUpdate",
-        "consumes": [
-          "application/json"
-        ],
-        "produces": [
-          "application/json"
-        ],
-        "responses": {
-          "200": {
-            "description": "no error",
-            "schema": {
-              "$ref": "#/definitions/ServiceUpdateResponse"
-            }
           },
-          "400": {
-            "description": "bad parameter",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "404": {
-            "description": "no such service",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "503": {
-            "description": "node is not part of a swarm",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
-        "parameters": [
           {
-            "name": "id",
-            "in": "path",
-            "description": "ID or name of service.",
+            "name": "version",
+            "in": "query",
+            "description": "The version number of the service object being updated. This is\nrequired to avoid conflicting writes.\nThis version number should be the value as currently set on the\nservice *before* the update. You can find the current version by\ncalling `GET /services/{id}`\n",
             "required": true,
+            "type": "integer"
+          },
+          {
+            "name": "registryAuthFrom",
+            "in": "query",
+            "description": "If the `X-Registry-Auth` header is not specified, this parameter\nindicates where to find registry authorization credentials.\n",
+            "type": "string",
+            "enum": [
+              "spec",
+              "previous-spec"
+            ],
+            "default": "spec"
+          },
+          {
+            "name": "rollback",
+            "in": "query",
+            "description": "Set to this parameter to `previous` to cause a server-side rollback\nto the previous service spec. The supplied spec will be ignored in\nthis case.\n",
+            "type": "string"
+          },
+          {
+            "name": "X-Registry-Auth",
+            "in": "header",
+            "description": "A base64url-encoded auth configuration for pulling from private\nregistries.\n\nRefer to the [authentication section](#section/Authentication) for\ndetails.\n",
             "type": "string"
           },
           {
@@ -14721,69 +14717,31 @@
                 }
               ]
             }
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "The version number of the service object being updated. This is\nrequired to avoid conflicting writes.\nThis version number should be the value as currently set on the\nservice *before* the update. You can find the current version by\ncalling `GET /services/{id}`\n",
-            "required": true,
-            "type": "integer"
-          },
-          {
-            "name": "registryAuthFrom",
-            "in": "query",
-            "description": "If the `X-Registry-Auth` header is not specified, this parameter\nindicates where to find registry authorization credentials.\n",
-            "type": "string",
-            "enum": [
-              "spec",
-              "previous-spec"
-            ],
-            "default": "spec"
-          },
-          {
-            "name": "rollback",
-            "in": "query",
-            "description": "Set to this parameter to `previous` to cause a server-side rollback\nto the previous service spec. The supplied spec will be ignored in\nthis case.\n",
-            "type": "string"
-          },
-          {
-            "name": "X-Registry-Auth",
-            "in": "header",
-            "description": "A base64url-encoded auth configuration for pulling from private\nregistries.\n\nRefer to the [authentication section](#section/Authentication) for\ndetails.\n",
-            "type": "string"
           }
         ],
-        "tags": [
-          "Service"
-        ]
-      }
-    },
-    "/services/{id}/logs": {
-      "get": {
-        "summary": "Get service logs",
-        "description": "Get `stdout` and `stderr` logs from a service. See also\n[`/containers/{id}/logs`](#operation/ContainerLogs).\n\n**Note**: This endpoint works only for services with the `local`,\n`json-file` or `journald` logging drivers.\n",
-        "produces": [
-          "application/vnd.docker.raw-stream",
-          "application/vnd.docker.multiplexed-stream"
+        "consumes": [
+          "application/json"
         ],
-        "operationId": "ServiceLogs",
+        "produces": [
+          "application/json"
+        ],
         "responses": {
           "200": {
-            "description": "logs returned as a stream in response body",
+            "description": "no error",
             "schema": {
-              "type": "string",
-              "format": "binary"
+              "$ref": "#/definitions/ServiceUpdateResponse"
+            }
+          },
+          "400": {
+            "description": "bad parameter",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
             }
           },
           "404": {
             "description": "no such service",
             "schema": {
               "$ref": "#/definitions/ErrorResponse"
-            },
-            "examples": {
-              "application/json": {
-                "message": "No such service: c2ada9df5af8"
-              }
             }
           },
           "500": {
@@ -14798,7 +14756,17 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      }
+    },
+    "/services/{id}/logs": {
+      "get": {
+        "summary": "Get service logs",
+        "description": "Get `stdout` and `stderr` logs from a service. See also\n[`/containers/{id}/logs`](#operation/ContainerLogs).\n\n**Note**: This endpoint works only for services with the `local`,\n`json-file` or `journald` logging drivers.\n",
+        "operationId": "ServiceLogs",
+        "tags": [
+          "Service"
+        ],
         "parameters": [
           {
             "name": "id",
@@ -14857,15 +14825,60 @@
             "default": "all"
           }
         ],
-        "tags": [
-          "Service"
-        ]
+        "produces": [
+          "application/vnd.docker.raw-stream",
+          "application/vnd.docker.multiplexed-stream",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "logs returned as a stream in response body",
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "404": {
+            "description": "no such service",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "examples": {
+              "application/json": {
+                "message": "No such service: c2ada9df5af8"
+              }
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "503": {
+            "description": "node is not part of a swarm",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/tasks": {
       "get": {
         "summary": "List tasks",
         "operationId": "TaskList",
+        "tags": [
+          "Task"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the tasks list.\n\nAvailable filters:\n\n- `desired-state=(running | shutdown | accepted)`\n- `id=<task id>`\n- `label=key` or `label=\"key=value\"`\n- `name=<task name>`\n- `node=<node id or name>`\n- `service=<service name>`\n",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -15059,24 +15072,25 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "type": "string",
-            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the tasks list.\n\nAvailable filters:\n\n- `desired-state=(running | shutdown | accepted)`\n- `id=<task id>`\n- `label=key` or `label=\"key=value\"`\n- `name=<task name>`\n- `node=<node id or name>`\n- `service=<service name>`\n"
-          }
-        ],
-        "tags": [
-          "Task"
-        ]
+        }
       }
     },
     "/tasks/{id}": {
       "get": {
         "summary": "Inspect a task",
         "operationId": "TaskInspect",
+        "tags": [
+          "Task"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "ID of the task",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -15105,19 +15119,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "ID of the task",
-            "required": true,
-            "type": "string"
-          }
-        ],
-        "tags": [
-          "Task"
-        ]
+        }
       }
     },
     "/tasks/{id}/logs": {
@@ -15125,42 +15127,9 @@
         "summary": "Get task logs",
         "description": "Get `stdout` and `stderr` logs from a task.\nSee also [`/containers/{id}/logs`](#operation/ContainerLogs).\n\n**Note**: This endpoint works only for services with the `local`,\n`json-file` or `journald` logging drivers.\n",
         "operationId": "TaskLogs",
-        "produces": [
-          "application/vnd.docker.raw-stream",
-          "application/vnd.docker.multiplexed-stream"
+        "tags": [
+          "Task"
         ],
-        "responses": {
-          "200": {
-            "description": "logs returned as a stream in response body",
-            "schema": {
-              "type": "string",
-              "format": "binary"
-            }
-          },
-          "404": {
-            "description": "no such task",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            },
-            "examples": {
-              "application/json": {
-                "message": "No such task: c2ada9df5af8"
-              }
-            }
-          },
-          "500": {
-            "description": "server error",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          },
-          "503": {
-            "description": "node is not part of a swarm",
-            "schema": {
-              "$ref": "#/definitions/ErrorResponse"
-            }
-          }
-        },
         "parameters": [
           {
             "name": "id",
@@ -15219,15 +15188,60 @@
             "default": "all"
           }
         ],
-        "tags": [
-          "Task"
-        ]
+        "produces": [
+          "application/vnd.docker.raw-stream",
+          "application/vnd.docker.multiplexed-stream",
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "logs returned as a stream in response body",
+            "schema": {
+              "type": "string",
+              "format": "binary"
+            }
+          },
+          "404": {
+            "description": "no such task",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            },
+            "examples": {
+              "application/json": {
+                "message": "No such task: c2ada9df5af8"
+              }
+            }
+          },
+          "500": {
+            "description": "server error",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          },
+          "503": {
+            "description": "node is not part of a swarm",
+            "schema": {
+              "$ref": "#/definitions/ErrorResponse"
+            }
+          }
+        }
       }
     },
     "/secrets": {
       "get": {
         "summary": "List secrets",
         "operationId": "SecretList",
+        "tags": [
+          "Secret"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the secrets list.\n\nAvailable filters:\n\n- `id=<secret id>`\n- `label=<key> or label=<key>=value`\n- `name=<secret name>` matches all or part of a secret name (prefix match)\n- `names=<secret name>` matches a secret name (exact match)\n",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -15290,24 +15304,46 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "type": "string",
-            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the secrets list.\n\nAvailable filters:\n\n- `id=<secret id>`\n- `label=<key> or label=<key>=value`\n- `name=<secret name>` matches all or part of a secret name (prefix match)\n- `names=<secret name>` matches a secret name (exact match)\n"
-          }
-        ],
-        "tags": [
-          "Secret"
-        ]
+        }
       }
     },
     "/secrets/create": {
       "post": {
         "summary": "Create a secret",
         "operationId": "SecretCreate",
+        "tags": [
+          "Secret"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/SecretSpec"
+                },
+                {
+                  "type": "object",
+                  "example": {
+                    "Name": "app-key.crt",
+                    "Labels": {
+                      "foo": "bar"
+                    },
+                    "Data": "VEhJUyBJUyBOT1QgQSBSRUFMIENFUlRJRklDQVRFCg==",
+                    "Driver": {
+                      "Name": "secret-bucket",
+                      "Options": {
+                        "OptionA": "value for driver option A",
+                        "OptionB": "value for driver option B"
+                      }
+                    }
+                  }
+                }
+              ]
+            }
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -15339,46 +15375,25 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/SecretSpec"
-                },
-                {
-                  "type": "object",
-                  "example": {
-                    "Name": "app-key.crt",
-                    "Labels": {
-                      "foo": "bar"
-                    },
-                    "Data": "VEhJUyBJUyBOT1QgQSBSRUFMIENFUlRJRklDQVRFCg==",
-                    "Driver": {
-                      "Name": "secret-bucket",
-                      "Options": {
-                        "OptionA": "value for driver option A",
-                        "OptionB": "value for driver option B"
-                      }
-                    }
-                  }
-                }
-              ]
-            }
-          }
-        ],
-        "tags": [
-          "Secret"
-        ]
+        }
       }
     },
     "/secrets/{id}": {
       "get": {
         "summary": "Inspect a secret",
         "operationId": "SecretInspect",
+        "tags": [
+          "Secret"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the secret",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -15430,23 +15445,23 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      },
+      "delete": {
+        "summary": "Delete a secret",
+        "operationId": "SecretDelete",
+        "tags": [
+          "Secret"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID of the secret"
+            "description": "ID of the secret",
+            "type": "string"
           }
         ],
-        "tags": [
-          "Secret"
-        ]
-      },
-      "delete": {
-        "summary": "Delete a secret",
-        "operationId": "SecretDelete",
         "produces": [
           "application/json"
         ],
@@ -15472,25 +15487,41 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "description": "ID of the secret"
-          }
-        ],
-        "tags": [
-          "Secret"
-        ]
+        }
       }
     },
     "/secrets/{id}/update": {
       "post": {
         "summary": "Update a Secret",
         "operationId": "SecretUpdate",
+        "tags": [
+          "Secret"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID or name of the secret",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "The version number of the secret object being updated. This is\nrequired to avoid conflicting writes.\n",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The spec of the secret to update. Currently, only the Labels field\ncan be updated. All other fields must remain unchanged from the\n[SecretInspect endpoint](#operation/SecretInspect) response values.\n",
+            "schema": {
+              "$ref": "#/definitions/SecretSpec"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error"
@@ -15519,41 +15550,24 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID or name of the secret",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/SecretSpec"
-            },
-            "description": "The spec of the secret to update. Currently, only the Labels field\ncan be updated. All other fields must remain unchanged from the\n[SecretInspect endpoint](#operation/SecretInspect) response values.\n"
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "The version number of the secret object being updated. This is\nrequired to avoid conflicting writes.\n",
-            "type": "integer",
-            "format": "int64",
-            "required": true
-          }
-        ],
-        "tags": [
-          "Secret"
-        ]
+        }
       }
     },
     "/configs": {
       "get": {
         "summary": "List configs",
         "operationId": "ConfigList",
+        "tags": [
+          "Config"
+        ],
+        "parameters": [
+          {
+            "name": "filters",
+            "in": "query",
+            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the configs list.\n\nAvailable filters:\n\n- `id=<config id>`\n- `label=<key> or label=<key>=value`\n- `name=<config name>` matches all or part of a config name (prefix match)\n",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -15592,24 +15606,39 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "filters",
-            "in": "query",
-            "type": "string",
-            "description": "A JSON encoded value of the filters (a `map[string][]string`) to\nprocess on the configs list.\n\nAvailable filters:\n\n- `id=<config id>`\n- `label=<key> or label=<key>=value`\n- `name=<config name>` matches all or part of a config name (prefix match)\n"
-          }
-        ],
-        "tags": [
-          "Config"
-        ]
+        }
       }
     },
     "/configs/create": {
       "post": {
         "summary": "Create a config",
         "operationId": "ConfigCreate",
+        "tags": [
+          "Config"
+        ],
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "allOf": [
+                {
+                  "$ref": "#/definitions/ConfigSpec"
+                },
+                {
+                  "type": "object",
+                  "example": {
+                    "Name": "server.conf",
+                    "Labels": {
+                      "foo": "bar"
+                    },
+                    "Data": "VEhJUyBJUyBOT1QgQSBSRUFMIENFUlRJRklDQVRFCg=="
+                  }
+                }
+              ]
+            }
+          }
+        ],
         "consumes": [
           "application/json"
         ],
@@ -15641,39 +15670,25 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "allOf": [
-                {
-                  "$ref": "#/definitions/ConfigSpec"
-                },
-                {
-                  "type": "object",
-                  "example": {
-                    "Name": "server.conf",
-                    "Labels": {
-                      "foo": "bar"
-                    },
-                    "Data": "VEhJUyBJUyBOT1QgQSBSRUFMIENFUlRJRklDQVRFCg=="
-                  }
-                }
-              ]
-            }
-          }
-        ],
-        "tags": [
-          "Config"
-        ]
+        }
       }
     },
     "/configs/{id}": {
       "get": {
         "summary": "Inspect a config",
         "operationId": "ConfigInspect",
+        "tags": [
+          "Config"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID of the config",
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -15715,23 +15730,23 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
+        }
+      },
+      "delete": {
+        "summary": "Delete a config",
+        "operationId": "ConfigDelete",
+        "tags": [
+          "Config"
+        ],
         "parameters": [
           {
             "name": "id",
             "in": "path",
             "required": true,
-            "type": "string",
-            "description": "ID of the config"
+            "description": "ID of the config",
+            "type": "string"
           }
         ],
-        "tags": [
-          "Config"
-        ]
-      },
-      "delete": {
-        "summary": "Delete a config",
-        "operationId": "ConfigDelete",
         "produces": [
           "application/json"
         ],
@@ -15757,25 +15772,41 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "description": "ID of the config"
-          }
-        ],
-        "tags": [
-          "Config"
-        ]
+        }
       }
     },
     "/configs/{id}/update": {
       "post": {
         "summary": "Update a Config",
         "operationId": "ConfigUpdate",
+        "tags": [
+          "Config"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "The ID or name of the config",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "version",
+            "in": "query",
+            "description": "The version number of the config object being updated. This is\nrequired to avoid conflicting writes.\n",
+            "required": true,
+            "type": "integer",
+            "format": "int64"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "description": "The spec of the config to update. Currently, only the Labels field\ncan be updated. All other fields must remain unchanged from the\n[ConfigInspect endpoint](#operation/ConfigInspect) response values.\n",
+            "schema": {
+              "$ref": "#/definitions/ConfigSpec"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "no error"
@@ -15804,35 +15835,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "description": "The ID or name of the config",
-            "type": "string",
-            "required": true
-          },
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "$ref": "#/definitions/ConfigSpec"
-            },
-            "description": "The spec of the config to update. Currently, only the Labels field\ncan be updated. All other fields must remain unchanged from the\n[ConfigInspect endpoint](#operation/ConfigInspect) response values.\n"
-          },
-          {
-            "name": "version",
-            "in": "query",
-            "description": "The version number of the config object being updated. This is\nrequired to avoid conflicting writes.\n",
-            "type": "integer",
-            "format": "int64",
-            "required": true
-          }
-        ],
-        "tags": [
-          "Config"
-        ]
+        }
       }
     },
     "/distribution/{name}/json": {
@@ -15840,6 +15843,18 @@
         "summary": "Get image information from the registry",
         "description": "Return image digest and platform information by contacting the registry.\n",
         "operationId": "DistributionInspect",
+        "tags": [
+          "Distribution"
+        ],
+        "parameters": [
+          {
+            "name": "name",
+            "in": "path",
+            "description": "Image name or id",
+            "required": true,
+            "type": "string"
+          }
+        ],
         "produces": [
           "application/json"
         ],
@@ -15867,19 +15882,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "parameters": [
-          {
-            "name": "name",
-            "in": "path",
-            "description": "Image name or id",
-            "type": "string",
-            "required": true
-          }
-        ],
-        "tags": [
-          "Distribution"
-        ]
+        }
       }
     },
     "/session": {
@@ -15887,8 +15890,12 @@
         "summary": "Initialize interactive session",
         "description": "Start a new interactive session with a server. Session allows server to\ncall back to the client for advanced capabilities.\n\n> **Deprecated**: This endpoint is deprecated and will be removed in a future version.\n> Server should support gRPC directly on the listening socket.\n\n### Hijacking\n\nThis endpoint hijacks the HTTP connection to HTTP2 transport that allows\nthe client to expose gPRC services on that connection.\n\nFor example, the client sends this request to upgrade the connection:\n\n```\nPOST /session HTTP/1.1\nUpgrade: h2c\nConnection: Upgrade\n```\n\nThe Docker daemon responds with a `101 UPGRADED` response follow with\nthe raw stream:\n\n```\nHTTP/1.1 101 UPGRADED\nConnection: Upgrade\nUpgrade: h2c\n```\n",
         "operationId": "Session",
+        "tags": [
+          "Session"
+        ],
         "produces": [
-          "application/vnd.docker.raw-stream"
+          "application/vnd.docker.raw-stream",
+          "application/json"
         ],
         "responses": {
           "101": {
@@ -15906,10 +15913,7 @@
               "$ref": "#/definitions/ErrorResponse"
             }
           }
-        },
-        "tags": [
-          "Session"
-        ]
+        }
       }
     }
   }
